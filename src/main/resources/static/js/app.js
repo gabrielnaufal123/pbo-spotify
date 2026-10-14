@@ -74,26 +74,40 @@ const MelodifyApp = {
     bindEvents() {
 
         // FORM PENCARIAN
-        const searchForm = document.getElementById("search-form");
 
-        if (searchForm) {
+        // =========================================
+        // FORM PENCARIAN YOUTUBE
+        // =========================================
+
+        const searchForm = document.getElementById("search-form");
+        const searchInput = document.getElementById("search-input");
+
+        if (searchForm && searchInput) {
 
             searchForm.addEventListener("submit", async (event) => {
 
                 event.preventDefault();
 
-                const input = document.getElementById("search-input");
+                const keyword = searchInput.value.trim();
 
-                const keyword = input?.value.trim();
+                console.log("Mencari lagu:", keyword);
 
                 if (!keyword) {
-                    this.showMessage("Masukkan judul lagu terlebih dahulu.");
+                    this.showMessage(
+                        "Masukkan judul lagu atau nama artis terlebih dahulu."
+                    );
                     return;
                 }
 
                 await this.searchSongs(keyword);
             });
+
+        } else {
+            console.warn(
+                "Form pencarian tidak ditemukan. Periksa ID pada songs.html."
+            );
         }
+
 
         // FORM MEMBUAT PLAYLIST
         const createPlaylistForm = document.getElementById(
@@ -190,12 +204,25 @@ const MelodifyApp = {
     // SEARCH YOUTUBE
     // =========================================
 
+
+    // =========================================
+    // SEARCH YOUTUBE
+    // =========================================
+
     async searchSongs(keyword) {
 
         const container = document.getElementById("search-results");
+        const songCount = document.getElementById("song-count");
 
-        if (container) {
-            container.innerHTML = "<p>Mencari lagu...</p>";
+        if (!container) {
+            console.error("Elemen #search-results tidak ditemukan.");
+            return;
+        }
+
+        container.textContent = "Sedang mencari lagu...";
+
+        if (songCount) {
+            songCount.textContent = "Mencari lagu...";
         }
 
         try {
@@ -209,12 +236,19 @@ const MelodifyApp = {
                 "search-results"
             );
 
+            if (songCount) {
+                songCount.textContent =
+                    `${this.searchResults.length} hasil pencarian ditemukan`;
+            }
+
         } catch (error) {
 
             console.error("Search error:", error);
 
-            if (container) {
-                container.innerHTML = "";
+            container.textContent = "";
+
+            if (songCount) {
+                songCount.textContent = "Pencarian gagal";
             }
 
             this.showMessage(
