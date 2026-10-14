@@ -7,6 +7,10 @@ import com.melodify.routes.playlistRoutes
 import com.melodify.database.DatabaseFactory
 import com.melodify.repositories.SongRepository
 
+import com.melodify.services.YouTubeService
+import com.melodify.services.MusicService
+import com.melodify.routes.youtubeRoutes
+
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -32,6 +36,15 @@ fun Application.module() {
         playlistRepository
     )
 
+    // Mengambil API Key dari Environment Variables
+    val youtubeApiKey = System.getenv("YOUTUBE_API_KEY")
+        ?: error("YOUTUBE_API_KEY belum dikonfigurasi")
+
+    // Membuat objek OOP
+    val youtubeService = YouTubeService(youtubeApiKey)
+
+    val musicService = MusicService(youtubeService)
+
     routing {
 
         // Menguji koneksi database
@@ -51,6 +64,13 @@ fun Application.module() {
                     status = HttpStatusCode.InternalServerError
                 )
             }
+
+            // Endpoint sebelumnya tetap dipertahankan
+            // Contoh:
+            // playlistRoutes(playlistService)
+
+            // Endpoint pencarian YouTube
+            youtubeRoutes(musicService)
         }
 
         // Mengambil seluruh lagu
