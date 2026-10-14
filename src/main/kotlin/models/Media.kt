@@ -1,8 +1,8 @@
 package com.melodify.models
 
 abstract class Media(
-    open val title: String,
-    open val artist: String
+    open val id: String,
+    open val title: String
 ) {
     abstract fun getInfo(): String
 }

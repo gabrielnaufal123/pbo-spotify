@@ -1,8 +1,5 @@
-package com.melodify.interfaces
+package com.melodify.models
 
 interface Playable {
-    fun play()
-    fun pause()
-    fun next()
-    fun previous()
+    fun getVideoId(): String
 }
