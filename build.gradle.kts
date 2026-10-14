@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+val ktorVersion = "3.6.0"
 group = "com.example"
 version = "1.0.0-SNAPSHOT"
 
@@ -15,6 +16,15 @@ kotlin {
     jvmToolchain(21)
 }
 dependencies {
+    implementation("io.ktor:ktor-server-core-jvm:$ktorVersion")
+
+    implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
+
+    implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion")
+
+    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
+
+    implementation("com.mysql:mysql-connector-j:8.4.0")
     implementation(ktorLibs.serialization.kotlinx.json)
     implementation(ktorLibs.server.config.yaml)
     implementation(ktorLibs.server.contentNegotiation)
