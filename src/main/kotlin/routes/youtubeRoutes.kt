@@ -12,6 +12,31 @@ fun Route.youtubeRoutes(
 
     route("/api/youtube") {
 
+        get("/recommendations") {
+
+            try {
+
+                val recommendations =
+                    musicService.getRecommendations()
+
+                call.respond(recommendations)
+
+            } catch (e: Exception) {
+
+                environment.log.error(
+                    "Gagal mengambil rekomendasi",
+                    e
+                )
+
+                call.respond(
+                    HttpStatusCode.BadGateway,
+                    mapOf(
+                        "error" to "Gagal mengambil rekomendasi YouTube"
+                    )
+                )
+            }
+        }
+
         get("/search") {
 
             val keyword = call.request
