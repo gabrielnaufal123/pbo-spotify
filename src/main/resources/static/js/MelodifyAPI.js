@@ -1,6 +1,13 @@
 
 const MelodifyAPI = {
 
+    async getRecommendations() {
+
+        return this.request(
+            "/api/youtube/recommendations"
+        );
+    },
+
     // Fungsi utama untuk melakukan request ke backend Kotlin
     async request(url, options = {}) {
 
