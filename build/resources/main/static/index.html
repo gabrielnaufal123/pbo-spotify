@@ -1,7 +1,170 @@
-<html>
+<!DOCTYPE html>
+<html lang="id">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Beranda — Wavely</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<h1>Hello Ktor!</h1>
+<svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></symbol>
+    <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M7 4h3v16H7zM14 4h3v16h-3z"/></symbol>
+    <symbol id="i-prev" viewBox="0 0 24 24"><path d="M19 20L9 12l10-8z"/><path d="M5 5v14"/></symbol>
+    <symbol id="i-next" viewBox="0 0 24 24"><path d="M5 4l10 8-10 8z"/><path d="M19 5v14"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+</svg>
+
+<div class="app">
+    <div class="panel">
+
+        <!-- ===== SIDEBAR (sama di semua halaman) ===== -->
+        <aside class="sidebar">
+            <div class="side-title">
+                <h2>Wavely</h2>
+                <p>Library</p>
+            </div>
+
+            <nav class="nav" aria-label="Menu utama">
+                <a href="index.html" class="active" aria-current="page"><svg class="icon"><use href="#i-home"/></svg><span>Beranda</span></a>
+                <a href="songs.html"><svg class="icon"><use href="#i-music"/></svg><span>Lagu</span></a>
+                <a href="playlists.html"><svg class="icon"><use href="#i-list"/></svg><span>Playlist</span></a>
+            </nav>
+
+            <p class="side-label">Playlist kamu</p>
+            <nav class="nav side-playlists" aria-label="Playlist">
+                <a href="playlistdtl.html"><span class="mini g4"></span><span>Good Vibes Only</span></a>
+                <a href="playlistdtl.html"><span class="mini g2"></span><span>Indie Anthems</span></a>
+                <a href="playlists.html"><svg class="icon"><use href="#i-plus"/></svg><span>Buat playlist</span></a>
+            </nav>
+        </aside>
+
+        <!-- ===== KONTEN HALAMAN ===== -->
+        <main class="content">
+            <header class="page-head">
+                <div>
+                    <h1>Beranda</h1>
+                    <p>Selamat datang kembali</p>
+                </div>
+                <form class="search" action="songs.html" method="get" role="search">
+                    <svg class="icon"><use href="#i-search"/></svg>
+                    <input type="search" name="q" value="" placeholder="Cari lagu atau artis" aria-label="Cari lagu atau artis">
+                </form>
+            </header>
+
+            <section class="section">
+                <div class="section-head"><h2>Rekomendasi untukmu</h2><a href="songs.html">Lihat semua</a></div>
+                <div class="grid" id="recommended">
+                    <a class="card" href="songs.html">
+                        <div class="cover g1"><svg class="icon"><use href="#i-music"/></svg></div>
+                        <p class="card-title">Neon Drive</p>
+                        <p class="card-sub">Aurora Kay</p>
+                    </a>
+                    <a class="card" href="songs.html">
+                        <div class="cover g2"><svg class="icon"><use href="#i-music"/></svg></div>
+                        <p class="card-title">Blue Hour</p>
+                        <p class="card-sub">Lumen</p>
+                    </a>
+                    <a class="card" href="songs.html">
+                        <div class="cover g3"><svg class="icon"><use href="#i-music"/></svg></div>
+                        <p class="card-title">Violet Sky</p>
+                        <p class="card-sub">Nadir</p>
+                    </a>
+                    <a class="card" href="songs.html">
+                        <div class="cover g4"><svg class="icon"><use href="#i-music"/></svg></div>
+                        <p class="card-title">Midnight Loop</p>
+                        <p class="card-sub">Kora</p>
+                    </a>
+                </div>
+            </section>
+
+            <section class="section">
+                <div class="section-head"><h2>Terakhir diputar</h2><a href="songs.html">Lihat semua</a></div>
+                <div class="grid" id="recent">
+                    <a class="card" href="songs.html">
+                        <div class="cover g5"><svg class="icon"><use href="#i-music"/></svg></div>
+                        <p class="card-title">Mint Rain</p>
+                        <p class="card-sub">Fenn</p>
+                    </a>
+                    <a class="card" href="songs.html">
+                        <div class="cover g6"><svg class="icon"><use href="#i-music"/></svg></div>
+                        <p class="card-title">Solar Haze</p>
+                        <p class="card-sub">Oro</p>
+                    </a>
+                    <a class="card" href="songs.html">
+                        <div class="cover g7"><svg class="icon"><use href="#i-music"/></svg></div>
+                        <p class="card-title">Afterglow</p>
+                        <p class="card-sub">Aurora Kay</p>
+                    </a>
+                    <a class="card" href="songs.html">
+                        <div class="cover g1"><svg class="icon"><use href="#i-music"/></svg></div>
+                        <p class="card-title">Low Tide</p>
+                        <p class="card-sub">Lumen</p>
+                    </a>
+                </div>
+            </section>
+
+            <section class="section">
+                <div class="section-head"><h2>Playlist kamu</h2><a href="playlists.html">Lihat semua</a></div>
+                <div class="grid" id="home-playlists">
+                    <a class="card" href="playlistdtl.html">
+                        <div class="cover g4"><svg class="icon"><use href="#i-list"/></svg></div>
+                        <p class="card-title">Good Vibes Only</p>
+                        <p class="card-sub">12 lagu</p>
+                    </a>
+                    <a class="card" href="playlistdtl.html">
+                        <div class="cover g2"><svg class="icon"><use href="#i-list"/></svg></div>
+                        <p class="card-title">Indie Anthems</p>
+                        <p class="card-sub">8 lagu</p>
+                    </a>
+                    <a class="card" href="playlistdtl.html">
+                        <div class="cover g3"><svg class="icon"><use href="#i-list"/></svg></div>
+                        <p class="card-title">Late Night Coding</p>
+                        <p class="card-sub">15 lagu</p>
+                    </a>
+                    <a class="card" href="playlistdtl.html">
+                        <div class="cover g5"><svg class="icon"><use href="#i-list"/></svg></div>
+                        <p class="card-title">Fokus Belajar</p>
+                        <p class="card-sub">20 lagu</p>
+                    </a>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ===== PEMUTAR (sama di semua halaman) ===== -->
+    <footer class="player" aria-label="Pemutar musik">
+        <div class="p-info">
+            <span class="thumb g1"></span>
+            <div class="p-text"><strong>Neon Drive</strong><span>Aurora Kay</span></div>
+        </div>
+        <div class="p-center">
+            <div class="p-controls">
+                <button class="icon-btn" aria-label="Sebelumnya"><svg class="icon fill"><use href="#i-prev"/></svg></button>
+                <button class="icon-btn play" aria-label="Putar"><svg class="icon fill"><use href="#i-play"/></svg></button>
+                <button class="icon-btn" aria-label="Berikutnya"><svg class="icon fill"><use href="#i-next"/></svg></button>
+            </div>
+            <div class="p-progress">
+                <span>1:12</span>
+                <input type="range" class="range" min="0" max="100" value="32" style="--value:32%" aria-label="Progres lagu">
+                <span>3:45</span>
+            </div>
+        </div>
+        <div class="p-vol">
+            <svg class="icon"><use href="#i-volume"/></svg>
+            <input type="range" class="range" min="0" max="100" value="70" style="--value:70%" aria-label="Volume">
+        </div>
+    </footer>
+</div>
+
+<!-- JavaScript ditambahkan di Tahap 4 dan 5 -->
 </body>
 </html>

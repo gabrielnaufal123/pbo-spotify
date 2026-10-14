@@ -21,6 +21,7 @@ dependencies {
     implementation(ktorLibs.server.core)
     implementation(ktorLibs.server.netty)
     implementation(libs.logback.classic)
+    implementation("com.mysql:mysql-connector-j:8.4.0")
 
     testImplementation(kotlin("test"))
     testImplementation(ktorLibs.server.testHost)
