@@ -92,7 +92,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 number.textContent = index + 1;
 
                 const title = document.createElement("td");
-                title.textContent = item.title;
+
+                const trackInfo = document.createElement("div");
+                trackInfo.className = "playlist-track-info";
+
+                const thumbnail = document.createElement("img");
+
+                thumbnail.src = item.thumbnailUrl || "";
+                thumbnail.alt = item.title;
+                thumbnail.loading = "lazy";
+
+                const text = document.createElement("span");
+                text.textContent = item.title;
+
+                trackInfo.append(thumbnail, text);
+                title.appendChild(trackInfo);
 
                 const artist = document.createElement("td");
                 artist.textContent = item.artist;
