@@ -160,17 +160,25 @@ class PlaylistService(
         )
     }
 
-    // =========================================
-    // 8. MENGAMBIL PLAYLIST BESERTA ISINYA
-    // =========================================
 
+
+    fun getAllPlaylistsWithSongs(): List<Playlist> {
+
+        return repository.getAllPlaylists().mapNotNull { playlist ->
+            getPlaylistWithSongs(playlist.id)
+        }
+    }
+
+
+    // Mengambil satu playlist beserta seluruh lagunya
     fun getPlaylistWithSongs(id: Int): Playlist? {
 
         val playlist = repository.getPlaylistById(id)
             ?: return null
 
-        val songs = repository.getPlaylistItems(id).map { item ->
+        val items = repository.getPlaylistItems(id)
 
+        val songs = items.map { item ->
             Song(
                 id = item.youtubeVideoId,
                 title = item.title,
@@ -185,10 +193,5 @@ class PlaylistService(
         return playlist
     }
 
-    fun getAllPlaylistsWithSongs(): List<Playlist> {
 
-        return repository.getAllPlaylists().mapNotNull { playlist ->
-            getPlaylistWithSongs(playlist.id)
-        }
-    }
 }

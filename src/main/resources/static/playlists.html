@@ -6,9 +6,11 @@
     <title>Playlist — Melodify</title>
     <link rel="stylesheet" href="style.css">
 </head>
+<script src="https://www.youtube.com/iframe_api" defer></script>
 <script src="js/api.js"></script>
 <script src="js/player.js"></script>
 <script src="js/app.js"></script>
+<script src="js/playlists.js" defer></script>
 <body>
 <svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
@@ -63,53 +65,44 @@
                 </form>
             </header>
 
-            <div class="grid" id="playlist-grid">
-                <a class="card" href="#" id="new-playlist">
-                    <div class="cover new"><svg class="icon"><use href="#i-plus"/></svg></div>
-                    <p class="card-title">Buat playlist</p>
-                    <p class="card-sub">Playlist baru</p>
-                </a>
-                <a class="card" href="playlistdtl.html">
-                    <div class="cover g4"><svg class="icon"><use href="#i-list"/></svg></div>
-                    <p class="card-title">Good Vibes Only</p>
-                    <p class="card-sub">12 lagu</p>
-                </a>
-                <a class="card" href="playlistdtl.html">
-                    <div class="cover g2"><svg class="icon"><use href="#i-list"/></svg></div>
-                    <p class="card-title">Indie Anthems</p>
-                    <p class="card-sub">8 lagu</p>
-                </a>
-                <a class="card" href="playlistdtl.html">
-                    <div class="cover g3"><svg class="icon"><use href="#i-list"/></svg></div>
-                    <p class="card-title">Late Night Coding</p>
-                    <p class="card-sub">15 lagu</p>
-                </a>
-                <a class="card" href="playlistdtl.html">
-                    <div class="cover g5"><svg class="icon"><use href="#i-list"/></svg></div>
-                    <p class="card-title">Fokus Belajar</p>
-                    <p class="card-sub">20 lagu</p>
-                </a>
-                <a class="card" href="playlistdtl.html">
-                    <div class="cover g6"><svg class="icon"><use href="#i-list"/></svg></div>
-                    <p class="card-title">Pagi Santai</p>
-                    <p class="card-sub">10 lagu</p>
-                </a>
-                <a class="card" href="playlistdtl.html">
-                    <div class="cover g1"><svg class="icon"><use href="#i-list"/></svg></div>
-                    <p class="card-title">Road Trip</p>
-                    <p class="card-sub">18 lagu</p>
-                </a>
-                <a class="card" href="playlistdtl.html">
-                    <div class="cover g7"><svg class="icon"><use href="#i-list"/></svg></div>
-                    <p class="card-title">Lo-fi Bandung</p>
-                    <p class="card-sub">25 lagu</p>
-                </a>
-                <a class="card" href="playlistdtl.html">
-                    <div class="cover g3"><svg class="icon"><use href="#i-list"/></svg></div>
-                    <p class="card-title">Gym Mix</p>
-                    <p class="card-sub">14 lagu</p>
-                </a>
-            </div>
+
+                <section class="playlist-section">
+
+                    <div class="section-head">
+                        <h2>Playlist Saya</h2>
+                        <p>Buat dan kelola koleksi musikmu.</p>
+                    </div>
+
+                    <form id="create-playlist-form">
+
+                        <input
+                                type="text"
+                                id="playlist-name"
+                                placeholder="Nama playlist"
+                                maxlength="150"
+                                required
+                        >
+
+                        <input
+                                type="text"
+                                id="playlist-description"
+                                placeholder="Deskripsi playlist (opsional)"
+                        >
+
+                        <button type="submit">
+                            + Buat Playlist
+                        </button>
+
+                    </form>
+
+                    <p id="playlist-message" role="status"></p>
+
+                    <div id="playlist-list" class="card-grid">
+                        <p>Memuat playlist...</p>
+                    </div>
+
+                </section>
+
         </main>
     </div>
 
