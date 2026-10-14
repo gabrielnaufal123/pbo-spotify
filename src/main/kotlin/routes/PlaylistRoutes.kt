@@ -28,7 +28,7 @@ fun Route.playlistRoutes(service: PlaylistService) {
         get {
 
             val playlists = withContext(Dispatchers.IO) {
-                service.getAllPlaylists()
+                service.getAllPlaylistsWithSongs()
             }
 
             call.respond(
@@ -86,7 +86,7 @@ fun Route.playlistRoutes(service: PlaylistService) {
             }
 
             val playlist = withContext(Dispatchers.IO) {
-                service.getPlaylistById(id)
+                service.getPlaylistWithSongs(id)
             }
 
             if (playlist == null) {

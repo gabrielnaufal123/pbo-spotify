@@ -231,67 +231,120 @@ h1, h2, h3, p { margin: 0; }
     .hide-sm { display: none; }
 }
 
-/* ======================================
-   MELODIFY - RECOMMENDATIONS
-====================================== */
+/* =====================================
+   PLAYLIST - MELODIFY
+===================================== */
 
-.recommendation-card {
+.playlist-section,
+.playlist-detail {
+    padding: 24px;
+}
+
+#create-playlist-form {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 14px;
-    border-radius: 12px;
-    background: #202020;
-    transition: background 0.2s ease;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 24px 0;
 }
 
-.recommendation-card:hover {
-    background: #303030;
-}
-
-.recommendation-cover {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    overflow: hidden;
+#create-playlist-form input {
+    background: #242424;
+    color: white;
+    border: 1px solid #404040;
     border-radius: 8px;
-    background: #333;
+    padding: 12px 14px;
+    outline: none;
+    min-width: 180px;
 }
 
-.recommendation-cover img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+#create-playlist-form input:focus {
+    border-color: #1db954;
 }
 
-.recommendation-card .card-title {
-    font-weight: bold;
-    line-height: 1.4;
-
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
-}
-
-.recommendation-card .card-sub {
-    color: #a7a7a7;
-    font-size: 13px;
-}
-
-.recommendation-play {
-    margin-top: auto;
-    padding: 10px 16px;
-
-    border: none;
-    border-radius: 24px;
-
+#create-playlist-form button,
+#play-all-btn {
     background: #1db954;
     color: #101010;
-
+    border: none;
+    border-radius: 24px;
+    padding: 12px 22px;
     font-weight: bold;
     cursor: pointer;
 }
 
-.recommendation-play:hover {
-    background: #1ed760;
+.playlist-card {
+    padding: 12px;
+}
+
+.playlist-card a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.playlist-delete,
+.remove-song-btn {
+    background: transparent;
+    color: #ff8585;
+    border: 1px solid #555;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-top: 12px;
+    cursor: pointer;
+}
+
+.playlist-delete:hover,
+.remove-song-btn:hover {
+    background: #422222;
+}
+
+#playlist-message,
+#detail-message {
+    margin: 12px 0;
+    color: #1db954;
+}
+
+#playlist-song-rows button {
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.playlist-hero {
+    margin-bottom: 28px;
+}
+
+.playlist-hero h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 600px) {
+
+    #create-playlist-form {
+        flex-direction: column;
+    }
+
+    #create-playlist-form input {
+        width: 100%;
+    }
+
+    .playlist-section,
+    .playlist-detail {
+        padding: 16px;
+    }
+}
+
+.youtube-embed {
+    margin-left: -200px;
+    width: 100px;
+    height: 50px;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #000;
+}
+
+.youtube-embed iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
 }

@@ -6,9 +6,11 @@
     <title>Detail Playlist — Melodify</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<script src="js/api.js"></script>
-<script src="js/player.js"></script>
-<script src="js/app.js"></script>
+<script src="https://www.youtube.com/iframe_api" defer></script>
+<script src="js/api.js" defer></script>
+<script src="js/player.js" defer></script>
+<script src="js/app.js" defer></script>
+<script src="js/playlist-detail.js" defer></script>
 <body>
 <svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
@@ -63,17 +65,52 @@
                 </form>
             </header>
 
-            <section class="pl-hero">
-                <div class="cover xl g4"><svg class="icon"><use href="#i-list"/></svg></div>
-                <div class="pl-meta">
-                    <p class="eyebrow">Playlist</p>
-                    <h2 id="pl-name">Good Vibes Only</h2>
-                    <p class="muted">5 lagu · 17 menit</p>
-                    <div class="pl-actions">
-                        <button class="btn primary"><svg class="icon fill"><use href="#i-play"/></svg> Putar</button>
-                        <a class="btn ghost" href="songs.html"><svg class="icon"><use href="#i-plus"/></svg> Tambah lagu</a>
-                    </div>
+            <section class="playlist-detail">
+
+                <div class="playlist-hero">
+
+                    <h1 id="pl-name">Memuat playlist...</h1>
+
+                    <p id="pl-description"></p>
+
+                    <p id="pl-count">0 lagu</p>
+
+                    <button
+                            type="button"
+                            id="play-all-btn"
+                    >
+                        ▶ Putar Semua
+                    </button>
+
                 </div>
+
+                <p id="detail-message" role="status"></p>
+
+                <div class="table-wrap">
+
+                    <table>
+
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Judul</th>
+                            <th>Artis</th>
+                            <th>Aksi</th>
+                        </tr>
+                        </thead>
+
+                        <tbody id="playlist-song-rows">
+                        <tr>
+                            <td colspan="4">
+                                Memuat lagu...
+                            </td>
+                        </tr>
+                        </tbody>
+
+                    </table>
+
+                </div>
+
             </section>
 
             <table class="tracks">
