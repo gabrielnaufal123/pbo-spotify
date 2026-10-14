@@ -1,5 +1,9 @@
 package com.melodify
 
+import com.melodify.repositories.PlaylistRepository
+import com.melodify.services.PlaylistService
+import com.melodify.routes.playlistRoutes
+
 import com.melodify.database.DatabaseFactory
 import com.melodify.repositories.SongRepository
 
@@ -21,6 +25,12 @@ fun Application.module() {
     }
 
     val songRepository = SongRepository()
+
+    val playlistRepository = PlaylistRepository()
+
+    val playlistService = PlaylistService(
+        playlistRepository
+    )
 
     routing {
 
@@ -65,6 +75,8 @@ fun Application.module() {
 
             call.respond(songs)
         }
+
+        playlistRoutes(playlistService)
 
         // Menampilkan HTML, CSS, dan JavaScript
         staticResources("/", "static") {
