@@ -16,6 +16,7 @@ kotlin {
     jvmToolchain(21)
 }
 dependencies {
+    implementation("io.ktor:ktor-client-cio-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-core-jvm:$ktorVersion")
 
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
