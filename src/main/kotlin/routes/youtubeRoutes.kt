@@ -14,10 +14,29 @@ fun Route.youtubeRoutes(
 
         get("/recommendations") {
 
+            // Riwayat putar dikirim browser (disimpan di localStorage)
+            val recentArtists = call.request.queryParameters
+                .getAll("artist")
+                .orEmpty()
+                .map { it.trim() }
+                .filter { it.isNotEmpty() && it.length <= 100 }
+                .take(30)
+
+            val recentVideoIds = call.request.queryParameters
+                .getAll("exclude")
+                .orEmpty()
+                .map { it.trim() }
+                .filter { it.isNotEmpty() && it.length <= 20 }
+                .take(60)
+                .toSet()
+
             try {
 
                 val recommendations =
-                    musicService.getRecommendations()
+                    musicService.getRecommendations(
+                        recentArtists,
+                        recentVideoIds
+                    )
 
                 call.respond(recommendations)
 
@@ -28,10 +47,17 @@ fun Route.youtubeRoutes(
                     e
                 )
 
+                val quotaExceeded =
+                    e.message?.contains("quotaExceeded") == true
+
                 call.respond(
                     HttpStatusCode.BadGateway,
                     mapOf(
-                        "error" to "Gagal mengambil rekomendasi YouTube"
+                        "error" to if (quotaExceeded) {
+                            "Kuota YouTube API hari ini habis. Coba lagi besok."
+                        } else {
+                            "Gagal mengambil rekomendasi YouTube"
+                        }
                     )
                 )
             }

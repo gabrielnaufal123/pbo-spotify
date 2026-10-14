@@ -61,8 +61,17 @@ fun Application.module() {
         youtubeApiKey
     )
 
+    // Kode negara untuk tangga lagu populer (cold start rekomendasi)
+    val youtubeRegion = System.getenv("YOUTUBE_REGION")
+        ?.trim()
+        ?.uppercase()
+        ?.takeIf { it.length == 2 }
+        ?: "ID"
+
     val musicService = MusicService(
-        youtubeService
+        youtubeService,
+        playlistService,
+        youtubeRegion
     )
 
     // =========================================

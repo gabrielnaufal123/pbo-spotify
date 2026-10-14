@@ -1,40 +1,87 @@
-document.addEventListener("DOMContentLoaded", () => {
+/*
+ * MELODIFY - PLAYLIST-DETAIL.JS (halaman Detail Playlist)
+ */
 
-    const tbody = document.getElementById(
-        "playlist-song-rows"
-    );
+(function () {
 
-    if (!tbody) return;
+    const rows = document.getElementById("playlist-song-rows");
+    const nameEl = document.getElementById("pl-name");
+    const descEl = document.getElementById("pl-description");
+    const countEl = document.getElementById("pl-count");
+    const coverEl = document.getElementById("pl-cover");
+    const playAll = document.getElementById("play-all-btn");
 
-    const params = new URLSearchParams(
-        window.location.search
-    );
+    const playlistId = Number(new URLSearchParams(location.search).get("id"));
 
-    const playlistId = Number(params.get("id"));
+    let songs = [];
 
-    const message = document.getElementById(
-        "detail-message"
-    );
+    function messageRow(text) {
 
-    const playAllButton = document.getElementById(
-        "play-all-btn"
-    );
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
 
-    let currentSongs = [];
+        cell.colSpan = 3;
+        cell.className = "empty";
+        cell.textContent = text;
 
-    function showMessage(text) {
-        message.textContent = text;
+        row.appendChild(cell);
+        rows.replaceChildren(row);
     }
 
-    // Mengambil playlist dan lagu dari Kotlin
-    async function loadPlaylistDetail() {
+    function buildRow(item, index) {
 
-        if (
-            !Number.isInteger(playlistId) ||
-            playlistId <= 0
-        ) {
+        const row = document.createElement("tr");
+        row.dataset.videoId = item.youtubeVideoId;
 
-            showMessage("ID playlist tidak valid.");
+        const number = MelodifyUI.el("td", "num", String(index + 1));
+
+        const titleCell = document.createElement("td");
+        const info = MelodifyUI.el("div", "track-info");
+
+        const thumb = document.createElement("img");
+        thumb.className = "thumb-img";
+        thumb.src = MelodifyUI.thumbUrl(item);
+        thumb.alt = "";
+        thumb.loading = "lazy";
+        thumb.referrerPolicy = "no-referrer";
+
+        const text = document.createElement("div");
+        const title = MelodifyUI.el("strong", "", item.title);
+        title.title = item.title;
+        text.append(title, MelodifyUI.el("span", "", item.artist));
+
+        info.append(thumb, text);
+        titleCell.appendChild(info);
+
+        const actions = MelodifyUI.el("td", "act");
+
+        actions.append(
+            MelodifyUI.iconButton(
+                "play",
+                `Putar ${item.title}`,
+                "icon-btn",
+                () => MelodifyPlayer.setQueue(songs, index)
+            ),
+            MelodifyUI.iconButton(
+                "x",
+                "Hapus dari playlist",
+                "icon-btn",
+                () => removeSong(item)
+            )
+        );
+
+        actions.querySelector(".icon").classList.add("fill");
+
+        row.append(number, titleCell, actions);
+
+        return row;
+    }
+
+    async function load() {
+
+        if (!Number.isInteger(playlistId) || playlistId <= 0) {
+            nameEl.textContent = "Playlist tidak ditemukan";
+            messageRow("ID playlist tidak valid.");
             return;
         }
 
@@ -45,18 +92,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 MelodifyAPI.getPlaylistItems(playlistId)
             ]);
 
-            document.getElementById("pl-name")
-                .textContent = playlist.name;
+            document.title = `${playlist.name} — Melodify`;
+            nameEl.textContent = playlist.name;
+            descEl.textContent = playlist.description || "Tidak ada deskripsi";
+            countEl.textContent = `${items.length} lagu`;
+            coverEl.className = `cover xl ${MelodifyUI.gradientFor(playlist.id)}`;
 
-            document.getElementById("pl-description")
-                .textContent = playlist.description;
-
-            document.getElementById("pl-count")
-                .textContent = `${items.length} lagu`;
-
-            // Menyesuaikan format item database
-            // dengan format yang digunakan player.js
-            currentSongs = items.map(item => ({
+            songs = items.map(item => ({
                 id: item.id,
                 youtubeVideoId: item.youtubeVideoId,
                 title: item.title,
@@ -64,133 +106,54 @@ document.addEventListener("DOMContentLoaded", () => {
                 thumbnailUrl: item.thumbnailUrl
             }));
 
-            // Memberikan daftar lagu ke player.js
-            setPlaylist(currentSongs);
-
-            tbody.replaceChildren();
-
-            if (items.length === 0) {
-
-                const row = document.createElement("tr");
-                const cell = document.createElement("td");
-
-                cell.colSpan = 4;
-                cell.textContent =
-                    "Playlist masih kosong. Tambahkan lagu dari halaman pencarian.";
-
-                row.appendChild(cell);
-                tbody.appendChild(row);
-
+            if (songs.length === 0) {
+                messageRow(
+                    "Playlist masih kosong. Tambahkan lagu dari halaman Lagu."
+                );
                 return;
             }
 
-            items.forEach((item, index) => {
-
-                const row = document.createElement("tr");
-
-                const number = document.createElement("td");
-                number.textContent = index + 1;
-
-                const title = document.createElement("td");
-
-                const trackInfo = document.createElement("div");
-                trackInfo.className = "playlist-track-info";
-
-                const thumbnail = document.createElement("img");
-
-                thumbnail.src = item.thumbnailUrl || "";
-                thumbnail.alt = item.title;
-                thumbnail.loading = "lazy";
-
-                const text = document.createElement("span");
-                text.textContent = item.title;
-
-                trackInfo.append(thumbnail, text);
-                title.appendChild(trackInfo);
-
-                const artist = document.createElement("td");
-                artist.textContent = item.artist;
-
-                const action = document.createElement("td");
-
-                // Tombol memutar lagu
-                const playButton = document.createElement("button");
-
-                playButton.type = "button";
-                playButton.textContent = "▶";
-                playButton.title = "Putar lagu";
-
-                playButton.addEventListener("click", () => {
-                    playSong(index);
-                });
-
-                // Tombol menghapus lagu
-                const removeButton = document.createElement("button");
-
-                removeButton.type = "button";
-                removeButton.textContent = "Hapus";
-                removeButton.className = "remove-song-btn";
-
-                removeButton.addEventListener("click", async () => {
-
-                    const confirmed = confirm(
-                        `Hapus "${item.title}" dari playlist?`
-                    );
-
-                    if (!confirmed) return;
-
-                    try {
-
-                        await MelodifyAPI.removePlaylistItem(
-                            playlistId,
-                            item.id
-                        );
-
-                        showMessage("Lagu berhasil dihapus.");
-
-                        await loadPlaylistDetail();
-
-                    } catch (error) {
-
-                        showMessage(error.message);
-                    }
-                });
-
-                action.append(playButton, removeButton);
-
-                row.append(
-                    number,
-                    title,
-                    artist,
-                    action
-                );
-
-                tbody.appendChild(row);
-            });
+            rows.replaceChildren(...songs.map(buildRow));
+            MelodifyUI.markPlaying();
 
         } catch (error) {
 
-            console.error(error);
+            console.error("Detail playlist:", error);
 
-            showMessage(
-                "Gagal mengambil detail playlist: " +
-                error.message
-            );
+            nameEl.textContent = "Playlist tidak ditemukan";
+            descEl.textContent = "";
+            countEl.textContent = "";
+            messageRow(error.message);
         }
     }
 
-    // Memutar semua lagu mulai dari lagu pertama
-    playAllButton.addEventListener("click", () => {
+    async function removeSong(item) {
 
-        if (currentSongs.length === 0) {
+        if (!confirm(`Hapus "${item.title}" dari playlist?`)) return;
 
-            showMessage("Playlist masih kosong.");
+        try {
+
+            await MelodifyAPI.removePlaylistItem(playlistId, item.id);
+
+            MelodifyUI.toast("Lagu dihapus dari playlist.", "success");
+
+            await load();
+            MelodifyUI.loadSidebarPlaylists();
+
+        } catch (error) {
+            MelodifyUI.toast(error.message, "error");
+        }
+    }
+
+    playAll.addEventListener("click", () => {
+
+        if (songs.length === 0) {
+            MelodifyUI.toast("Playlist masih kosong.");
             return;
         }
 
-        setPlaylist(currentSongs);
-        playSong(0);
+        MelodifyPlayer.setQueue(songs, 0);
     });
 
-    loadPlaylistDetail();
-});
+    load();
+})();

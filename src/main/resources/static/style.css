@@ -90,6 +90,7 @@ h1, h2, h3, p { margin: 0; }
 }
 .nav a:hover { background: var(--hover); color: var(--text); }
 .nav a.active { background: var(--active); color: var(--text); }
+.nav-items { display: contents; }
 .mini { width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0; }
 
 /* ========== Konten ========== */
@@ -152,7 +153,7 @@ h1, h2, h3, p { margin: 0; }
 .track-info { display: flex; align-items: center; gap: 12px; }
 .track-info strong { display: block; font-weight: 500; }
 .track-info span:not(.thumb), .track-info div span { display: block; font-size: 11px; color: var(--muted); }
-.thumb { width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0; }
+.thumb { width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0; background-size: cover; background-position: center; }
 .empty { text-align: center; color: var(--muted); padding: 40px 0; }
 
 .icon-btn {
@@ -194,13 +195,13 @@ h1, h2, h3, p { margin: 0; }
 .p-info { display: flex; align-items: center; gap: 12px; flex: 0 0 200px; min-width: 0; }
 .p-text { min-width: 0; }
 .p-text strong { display: block; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.p-text span { font-size: 11px; color: var(--muted); }
+.p-text span { display: block; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .p-center { flex: 1; min-width: 0; }
 .p-controls { display: flex; justify-content: center; align-items: center; gap: 10px; }
 .icon-btn.play { background: #fff; color: #0a2540; width: 38px; height: 38px; }
 .icon-btn.play:hover { background: #fff; transform: scale(1.06); }
 .p-progress { display: flex; align-items: center; gap: 10px; font-size: 10px; color: var(--muted); margin-top: 2px; }
-.p-vol { display: flex; align-items: center; gap: 8px; flex: 0 0 120px; color: var(--muted); }
+.p-vol { display: flex; align-items: center; gap: 8px; flex: 0 0 170px; color: var(--muted); }
 
 .range {
     -webkit-appearance: none; appearance: none;
@@ -231,203 +232,198 @@ h1, h2, h3, p { margin: 0; }
     .hide-sm { display: none; }
 }
 
-/* =====================================
-   PLAYLIST - MELODIFY
-===================================== */
+/* ========== Tombol umum ========== */
+.btn { border: 0; cursor: pointer; }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+.icon-btn.active { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.playlist-section,
-.playlist-detail {
-    padding: 24px;
+/* ========== Pencarian: tombol Cari ========== */
+.search button[type="submit"] {
+    padding: 5px 12px; border-radius: 10px;
+    background: var(--accent); color: #06283a;
+    font-size: 12px; font-weight: 600;
+}
+.search button[type="submit"]:hover { filter: brightness(1.08); }
+
+/* ========== Kartu lagu ========== */
+.song-card { position: relative; min-width: 0; }
+.song-cover {
+    position: relative; aspect-ratio: 1; overflow: hidden;
+    border-radius: 14px; background: rgba(0, 0, 0, 0.28);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+.song-cover img {
+    display: block; width: 100%; height: 100%;
+    object-fit: cover; transition: transform 0.25s ease;
+}
+.song-card:hover .song-cover img { transform: scale(1.06); }
+
+.song-play, .cover-btn {
+    position: absolute; display: grid; place-items: center;
+    border-radius: 50%; transition: opacity 0.18s, transform 0.18s, background 0.15s;
+}
+.song-play {
+    right: 10px; bottom: 10px; width: 42px; height: 42px;
+    background: var(--accent); color: #06283a;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+    opacity: 0; transform: translateY(6px);
+}
+.song-play:hover { transform: scale(1.08); }
+.song-card:hover .song-play,
+.song-play:focus-visible,
+.song-card.is-playing .song-play { opacity: 1; transform: none; }
+
+.cover-btn {
+    top: 8px; right: 8px; width: 30px; height: 30px;
+    background: rgba(8, 24, 42, 0.68); color: var(--text);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+}
+.cover-btn .icon { width: 16px; height: 16px; }
+.cover-btn:hover { background: var(--accent); color: #06283a; }
+.cover-btn.danger:hover { background: #ff6b7a; color: #fff; }
+.song-card:hover .cover-btn,
+.playlist-card:hover .cover-btn,
+.cover-btn:focus-visible { opacity: 1; }
+
+/* Layar sentuh tidak punya hover: tombol selalu terlihat */
+@media (hover: none) and (pointer: coarse) {
+    .song-play, .cover-btn { opacity: 1; transform: none; }
 }
 
-#create-playlist-form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin: 24px 0;
+.song-title {
+    margin-top: 10px; font-size: 13px; font-weight: 500; line-height: 1.35;
+    display: -webkit-box; -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
 }
-
-#create-playlist-form input {
-    background: #242424;
-    color: white;
-    border: 1px solid #404040;
-    border-radius: 8px;
-    padding: 12px 14px;
-    outline: none;
-    min-width: 180px;
+.song-artist {
+    margin-top: 2px; font-size: 11px; color: var(--muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.song-card.is-playing .song-title { color: var(--accent); }
 
-#create-playlist-form input:focus {
-    border-color: #1db954;
+/* ========== Kartu playlist ========== */
+.playlist-card { position: relative; min-width: 0; }
+.playlist-card .cover .icon { width: 40px; height: 40px; }
+.playlist-card .cover-btn { opacity: 0; }
+
+/* ========== Skeleton loading ========== */
+.skeleton .song-cover { animation: pulse 1.2s ease-in-out infinite; box-shadow: none; }
+.skeleton .line {
+    height: 10px; margin-top: 10px; border-radius: 6px; width: 85%;
+    background: rgba(255, 255, 255, 0.1); animation: pulse 1.2s ease-in-out infinite;
 }
+.skeleton .line.short { width: 55%; margin-top: 6px; }
+@keyframes pulse { 50% { opacity: 0.45; } }
 
-#create-playlist-form button,
-#play-all-btn {
-    background: #1db954;
-    color: #101010;
-    border: none;
-    border-radius: 24px;
-    padding: 12px 22px;
-    font-weight: bold;
-    cursor: pointer;
+/* ========== Status kosong / error ========== */
+.state-box {
+    grid-column: 1 / -1; display: flex; flex-direction: column;
+    align-items: flex-start; gap: 10px;
+    padding: 18px 20px; border-radius: 16px;
+    background: rgba(0, 0, 0, 0.18); border: 1px dashed var(--line);
+    color: var(--muted); font-size: 13px;
 }
+.state-box.error { border-color: rgba(255, 107, 122, 0.5); color: #ffb3bb; }
+.state-box a { color: var(--accent); }
+.state-box .btn { padding: 7px 16px; font-size: 12px; }
 
-.playlist-card {
-    padding: 12px;
+/* ========== Form buat playlist ========== */
+.create-form { display: flex; flex-wrap: wrap; gap: 12px; }
+.create-form input {
+    flex: 1 1 200px; min-width: 0;
+    padding: 11px 14px; border-radius: 14px;
+    background: rgba(0, 0, 0, 0.25); border: 1px solid var(--line);
+    color: var(--text); font: inherit; font-size: 13px; outline: 0;
 }
+.create-form input::placeholder { color: var(--muted); }
+.create-form input:focus { border-color: var(--accent); }
+.create-form .btn { flex: 0 0 auto; }
 
-.playlist-card a {
-    color: inherit;
-    text-decoration: none;
+/* ========== Detail playlist ========== */
+.pl-hero .cover.xl { width: 160px; }
+.pl-meta { min-width: 0; }
+.pl-meta h2 { overflow-wrap: anywhere; }
+.pl-meta .muted { font-size: 13px; }
+.tracks .thumb-img {
+    width: 44px; height: 44px; border-radius: 8px; flex-shrink: 0;
+    object-fit: cover; background: rgba(0, 0, 0, 0.3);
 }
-
-.playlist-delete,
-.remove-song-btn {
-    background: transparent;
-    color: #ff8585;
-    border: 1px solid #555;
-    border-radius: 8px;
-    padding: 8px 12px;
-    margin-top: 12px;
-    cursor: pointer;
+.tracks .track-info strong {
+    max-width: 380px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+.tracks tr.is-playing strong { color: var(--accent); }
+.tracks .act { width: 96px; white-space: nowrap; }
 
-.playlist-delete:hover,
-.remove-song-btn:hover {
-    background: #422222;
+/* ========== Video YouTube (iframe) ========== */
+.video-dock {
+    position: fixed; right: 24px; bottom: 112px; z-index: 30;
+    width: 356px; aspect-ratio: 16 / 9;
+    border-radius: 16px; overflow: hidden; background: #000;
+    border: 1px solid var(--line);
+    box-shadow: 0 20px 50px rgba(2, 12, 30, 0.55);
+    transition: opacity 0.2s, transform 0.2s;
 }
+.video-dock iframe { display: block; width: 100%; height: 100%; border: 0; }
+.video-dock.is-hidden { opacity: 0; transform: translateY(12px); pointer-events: none; }
 
-#playlist-message,
-#detail-message {
-    margin: 12px 0;
-    color: #1db954;
+/* ========== Toast ========== */
+.toast-stack {
+    position: fixed; left: 50%; bottom: 118px; z-index: 60;
+    transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    pointer-events: none;
 }
-
-#playlist-song-rows button {
-    margin-right: 8px;
-    cursor: pointer;
+.toast {
+    padding: 10px 18px; border-radius: 999px; max-width: min(520px, 90vw);
+    background: rgba(10, 28, 48, 0.94); border: 1px solid var(--line);
+    box-shadow: 0 12px 30px rgba(2, 12, 30, 0.5);
+    font-size: 13px; animation: toast-in 0.2s ease;
 }
+.toast.success { border-color: rgba(61, 242, 200, 0.6); }
+.toast.error { border-color: rgba(255, 107, 122, 0.7); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
 
-.playlist-hero {
-    margin-bottom: 28px;
+/* ========== Modal tambah ke playlist ========== */
+.modal-backdrop {
+    position: fixed; inset: 0; z-index: 50;
+    display: grid; place-items: center; padding: 16px;
+    background: rgba(3, 12, 26, 0.6);
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
 }
-
-.playlist-hero h1 {
-    font-size: 32px;
-    margin-bottom: 10px;
+.modal {
+    width: min(420px, 100%); max-height: 86vh; display: flex; flex-direction: column; gap: 14px;
+    padding: 22px; border-radius: 24px;
+    background: rgba(16, 40, 66, 0.96); border: 1px solid var(--line);
+    box-shadow: 0 30px 70px rgba(2, 12, 30, 0.6);
 }
-
-@media (max-width: 600px) {
-
-    #create-playlist-form {
-        flex-direction: column;
-    }
-
-    #create-playlist-form input {
-        width: 100%;
-    }
-
-    .playlist-section,
-    .playlist-detail {
-        padding: 16px;
-    }
+.modal h3 { font-size: 18px; }
+.modal .muted { font-size: 12px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.modal-list { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; min-height: 0; }
+.modal-list button {
+    display: flex; align-items: center; gap: 12px; width: 100%;
+    padding: 9px 10px; border-radius: 12px; text-align: left;
 }
-
-.youtube-embed {
-    margin-left: -200px;
-    width: 100px;
-    height: 50px;
-    flex-shrink: 0;
-    overflow: hidden;
-    border-radius: 8px;
-    background: #000;
+.modal-list button:hover { background: var(--hover); }
+.modal-list .mini { width: 32px; height: 32px; border-radius: 8px; }
+.modal-list small { display: block; color: var(--muted); font-size: 11px; }
+.modal-new { display: flex; gap: 8px; }
+.modal-new input {
+    flex: 1; min-width: 0; padding: 10px 12px; border-radius: 12px;
+    background: rgba(0, 0, 0, 0.25); border: 1px solid var(--line);
+    color: var(--text); font: inherit; font-size: 13px; outline: 0;
 }
+.modal-new input:focus { border-color: var(--accent); }
+.modal-new .btn { padding: 9px 16px; font-size: 12px; white-space: nowrap; }
+.modal .close { align-self: flex-end; }
 
-.youtube-embed iframe {
-    width: 100%;
-    height: 100%;
-    border: 0;
-}
-
-/* ======================================
-   MELODIFY - RECOMMENDATIONS
-====================================== */
-
-.recommendation-card {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 14px;
-    border-radius: 12px;
-    background: #202020;
-    transition: background 0.2s ease;
-}
-
-.recommendation-card:hover {
-    background: #303030;
-}
-
-.recommendation-cover {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    overflow: hidden;
-    border-radius: 8px;
-    background: #333;
-}
-
-.recommendation-cover img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.recommendation-card .card-title {
-    font-weight: bold;
-    line-height: 1.4;
-
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
-}
-
-.recommendation-card .card-sub {
-    color: #a7a7a7;
-    font-size: 13px;
-}
-
-.recommendation-play {
-    margin-top: auto;
-    padding: 10px 16px;
-
-    border: none;
-    border-radius: 24px;
-
-    background: #1db954;
-    color: #101010;
-
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.recommendation-play:hover {
-    background: #1ed760;
-}
-
-.playlist-track-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.playlist-track-info img {
-    width: 56px;
-    height: 42px;
-    object-fit: cover;
-    border-radius: 6px;
-    background: #303030;
-}
-
-.playlist-track-info span {
-    font-weight: 500;
+/* ========== Responsif tambahan ========== */
+@media (max-width: 860px) {
+    .grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; }
+    .video-dock { right: 8px; bottom: 92px; width: min(356px, calc(100vw - 16px)); }
+    .toast-stack { bottom: 100px; }
+    .p-vol { display: flex; flex: 0 0 auto; }
+    .p-vol .range, .p-vol .vol-icon { display: none; }
+    .tracks .track-info strong { max-width: 180px; }
 }

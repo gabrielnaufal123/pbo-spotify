@@ -1,131 +1,118 @@
-document.addEventListener("DOMContentLoaded", () => {
+/*
+ * MELODIFY - PLAYLISTS.JS (halaman Playlist)
+ * Satu-satunya file yang memasang event pada form #create-playlist-form.
+ * (Sebelumnya app.js dan file ini sama-sama memasangnya sehingga setiap
+ * submit mengirim dua request dan playlist terbuat dobel.)
+ */
 
-    const container = document.getElementById("playlist-list");
+(function () {
+
     const form = document.getElementById("create-playlist-form");
+    const nameInput = document.getElementById("playlist-name");
+    const descInput = document.getElementById("playlist-description");
+    const submitButton = form.querySelector("button[type='submit']");
+    const list = document.getElementById("playlist-list");
+    const count = document.getElementById("playlist-count");
 
-    if (!container || !form) return;
+    let creating = false; // cegah klik ganda
 
-    const message = document.getElementById("playlist-message");
-
-    function showMessage(text) {
-        message.textContent = text;
-    }
-
-    // Menampilkan semua playlist dari MySQL
     async function loadPlaylists() {
 
         try {
 
             const playlists = await MelodifyAPI.getPlaylists();
 
-            container.replaceChildren();
+            count.textContent = `${playlists.length} playlist`;
 
             if (playlists.length === 0) {
-                container.textContent =
-                    "Belum ada playlist. Buat playlist pertamamu!";
+                MelodifyUI.emptyState(
+                    list,
+                    "Belum ada playlist. Buat playlist pertamamu di atas!"
+                );
                 return;
             }
 
+            list.replaceChildren();
+
             playlists.forEach(playlist => {
-
-                const card = document.createElement("div");
-                card.className = "card playlist-card";
-
-                const link = document.createElement("a");
-
-                link.href =
-                    `playlistdtl.html?id=${playlist.id}`;
-
-                const cover = document.createElement("div");
-                cover.className = "cover g1";
-                cover.textContent = "♫";
-
-                const title = document.createElement("p");
-                title.className = "card-title";
-                title.textContent = playlist.name;
-
-                const subtitle = document.createElement("p");
-                subtitle.className = "card-sub";
-                subtitle.textContent =
-                    `${playlist.totalSongs} lagu`;
-
-                link.append(cover, title, subtitle);
-
-                const deleteButton = document.createElement("button");
-                deleteButton.type = "button";
-                deleteButton.className = "playlist-delete";
-                deleteButton.textContent = "Hapus Playlist";
-
-                deleteButton.addEventListener("click", async () => {
-
-                    const confirmed = confirm(
-                        `Hapus playlist "${playlist.name}" beserta seluruh isinya?`
-                    );
-
-                    if (!confirmed) return;
-
-                    try {
-
-                        await MelodifyAPI.deletePlaylist(playlist.id);
-
-                        showMessage("Playlist berhasil dihapus.");
-
-                        await loadPlaylists();
-
-                    } catch (error) {
-
-                        showMessage(error.message);
-                    }
-                });
-
-                card.append(link, deleteButton);
-                container.appendChild(card);
+                list.appendChild(
+                    MelodifyUI.playlistCard(playlist, deletePlaylist)
+                );
             });
 
         } catch (error) {
 
-            console.error(error);
+            console.error("Playlist:", error);
 
-            showMessage("Gagal mengambil playlist dari MySQL.");
+            count.textContent = "Gagal memuat";
+            MelodifyUI.errorState(
+                list,
+                "Gagal mengambil playlist: " + error.message,
+                loadPlaylists
+            );
         }
     }
 
-    // Membuat playlist baru
-    form.addEventListener("submit", async event => {
+    async function deletePlaylist(playlist) {
 
-        event.preventDefault();
+        const confirmed = confirm(
+            `Hapus playlist "${playlist.name}" beserta seluruh isinya?`
+        );
 
-        const name = document
-            .getElementById("playlist-name")
-            .value.trim();
-
-        const description = document
-            .getElementById("playlist-description")
-            .value.trim();
-
-        if (!name) {
-            showMessage("Nama playlist tidak boleh kosong.");
-            return;
-        }
+        if (!confirmed) return;
 
         try {
 
-            await MelodifyAPI.createPlaylist(
-                name,
-                description
-            );
+            await MelodifyAPI.deletePlaylist(playlist.id);
+
+            MelodifyUI.toast("Playlist berhasil dihapus.", "success");
+
+            await loadPlaylists();
+            MelodifyUI.loadSidebarPlaylists();
+
+        } catch (error) {
+            MelodifyUI.toast(error.message, "error");
+        }
+    }
+
+    form.addEventListener("submit", async (event) => {
+
+        event.preventDefault();
+
+        if (creating) return;
+
+        const name = nameInput.value.trim();
+        const description = descInput.value.trim();
+
+        if (!name) {
+            MelodifyUI.toast("Nama playlist tidak boleh kosong.", "error");
+            return;
+        }
+
+        creating = true;
+        submitButton.disabled = true;
+
+        try {
+
+            await MelodifyAPI.createPlaylist(name, description);
 
             form.reset();
 
-            showMessage("Playlist berhasil dibuat!");
+            MelodifyUI.toast("Playlist berhasil dibuat!", "success");
 
             await loadPlaylists();
+            MelodifyUI.loadSidebarPlaylists();
 
         } catch (error) {
 
-            showMessage(error.message);
+            MelodifyUI.toast(error.message, "error");
+
+        } finally {
+
+            creating = false;
+            submitButton.disabled = false;
         }
     });
 
     loadPlaylists();
-});
+})();

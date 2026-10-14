@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Beranda — Melodify</title>
     <link rel="stylesheet" href="style.css">
-
-    <script src="https://www.youtube.com/iframe_api" defer></script>
+    <!-- Urutan penting: api -> player -> app -> script halaman. YouTube IFrame API dimuat oleh player.js -->
     <script src="js/api.js" defer></script>
     <script src="js/player.js" defer></script>
     <script src="js/app.js" defer></script>
@@ -25,6 +24,7 @@
     <symbol id="i-prev" viewBox="0 0 24 24"><path d="M19 20L9 12l10-8z"/><path d="M5 5v14"/></symbol>
     <symbol id="i-next" viewBox="0 0 24 24"><path d="M5 4l10 8-10 8z"/><path d="M19 5v14"/></symbol>
     <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></symbol>
+    <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5l4.5 2.5-4.5 2.5z"/></symbol>
     <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
 </svg>
@@ -47,8 +47,7 @@
 
             <p class="side-label">Playlist kamu</p>
             <nav class="nav side-playlists" aria-label="Playlist">
-                <a href="playlistdtl.html"><span class="mini g4"></span><span>Good Vibes Only</span></a>
-                <a href="playlistdtl.html"><span class="mini g2"></span><span>Indie Anthems</span></a>
+                <span class="nav-items" id="side-playlist-items"></span>
                 <a href="playlists.html"><svg class="icon"><use href="#i-plus"/></svg><span>Buat playlist</span></a>
             </nav>
         </aside>
@@ -65,83 +64,19 @@
                     <input type="search" name="q" value="" placeholder="Cari lagu atau artis" aria-label="Cari lagu atau artis">
                 </form>
             </header>
-
             <section class="section">
                 <div class="section-head"><h2>Rekomendasi untukmu</h2><a href="songs.html">Lihat semua</a></div>
-                <div class="grid" id="recommended">
-                    <a class="card" href="songs.html">
-                        <div class="cover g1"><svg class="icon"><use href="#i-music"/></svg></div>
-                        <p class="card-title">Neon Drive</p>
-                        <p class="card-sub">Aurora Kay</p>
-                    </a>
-                    <a class="card" href="songs.html">
-                        <div class="cover g2"><svg class="icon"><use href="#i-music"/></svg></div>
-                        <p class="card-title">Blue Hour</p>
-                        <p class="card-sub">Lumen</p>
-                    </a>
-                    <a class="card" href="songs.html">
-                        <div class="cover g3"><svg class="icon"><use href="#i-music"/></svg></div>
-                        <p class="card-title">Violet Sky</p>
-                        <p class="card-sub">Nadir</p>
-                    </a>
-                    <a class="card" href="songs.html">
-                        <div class="cover g4"><svg class="icon"><use href="#i-music"/></svg></div>
-                        <p class="card-title">Midnight Loop</p>
-                        <p class="card-sub">Kora</p>
-                    </a>
-                </div>
+                <div class="grid" id="recommended" aria-live="polite"></div>
             </section>
 
             <section class="section">
-                <div class="section-head"><h2>Terakhir diputar</h2><a href="songs.html">Lihat semua</a></div>
-                <div class="grid" id="recent">
-                    <a class="card" href="songs.html">
-                        <div class="cover g5"><svg class="icon"><use href="#i-music"/></svg></div>
-                        <p class="card-title">Mint Rain</p>
-                        <p class="card-sub">Fenn</p>
-                    </a>
-                    <a class="card" href="songs.html">
-                        <div class="cover g6"><svg class="icon"><use href="#i-music"/></svg></div>
-                        <p class="card-title">Solar Haze</p>
-                        <p class="card-sub">Oro</p>
-                    </a>
-                    <a class="card" href="songs.html">
-                        <div class="cover g7"><svg class="icon"><use href="#i-music"/></svg></div>
-                        <p class="card-title">Afterglow</p>
-                        <p class="card-sub">Aurora Kay</p>
-                    </a>
-                    <a class="card" href="songs.html">
-                        <div class="cover g1"><svg class="icon"><use href="#i-music"/></svg></div>
-                        <p class="card-title">Low Tide</p>
-                        <p class="card-sub">Lumen</p>
-                    </a>
-                </div>
+                <div class="section-head"><h2>Terakhir diputar</h2></div>
+                <div class="grid" id="recent"></div>
             </section>
 
             <section class="section">
                 <div class="section-head"><h2>Playlist kamu</h2><a href="playlists.html">Lihat semua</a></div>
-                <div class="grid" id="home-playlists">
-                    <a class="card" href="playlistdtl.html">
-                        <div class="cover g4"><svg class="icon"><use href="#i-list"/></svg></div>
-                        <p class="card-title">Good Vibes Only</p>
-                        <p class="card-sub">12 lagu</p>
-                    </a>
-                    <a class="card" href="playlistdtl.html">
-                        <div class="cover g2"><svg class="icon"><use href="#i-list"/></svg></div>
-                        <p class="card-title">Indie Anthems</p>
-                        <p class="card-sub">8 lagu</p>
-                    </a>
-                    <a class="card" href="playlistdtl.html">
-                        <div class="cover g3"><svg class="icon"><use href="#i-list"/></svg></div>
-                        <p class="card-title">Late Night Coding</p>
-                        <p class="card-sub">15 lagu</p>
-                    </a>
-                    <a class="card" href="playlistdtl.html">
-                        <div class="cover g5"><svg class="icon"><use href="#i-list"/></svg></div>
-                        <p class="card-title">Fokus Belajar</p>
-                        <p class="card-sub">20 lagu</p>
-                    </a>
-                </div>
+                <div class="grid" id="home-playlists"></div>
             </section>
         </main>
     </div>
@@ -149,28 +84,32 @@
     <!-- ===== PEMUTAR (sama di semua halaman) ===== -->
     <footer class="player" aria-label="Pemutar musik">
         <div class="p-info">
-            <span class="thumb g1"></span>
-            <div class="p-text"><strong>Neon Drive</strong><span>Aurora Kay</span></div>
+            <span class="thumb g1" id="player-thumbnail" role="img" aria-label="Sampul lagu"></span>
+            <div class="p-text"><strong id="player-title">Belum ada lagu</strong><span id="player-artist">Pilih lagu untuk diputar</span></div>
         </div>
         <div class="p-center">
             <div class="p-controls">
-                <button class="icon-btn" aria-label="Sebelumnya"><svg class="icon fill"><use href="#i-prev"/></svg></button>
-                <button class="icon-btn play" aria-label="Putar"><svg class="icon fill"><use href="#i-play"/></svg></button>
-                <button class="icon-btn" aria-label="Berikutnya"><svg class="icon fill"><use href="#i-next"/></svg></button>
+                <button class="icon-btn" id="player-prev-btn" type="button" aria-label="Sebelumnya"><svg class="icon fill"><use href="#i-prev"/></svg></button>
+                <button class="icon-btn play" id="player-play-btn" type="button" aria-label="Putar"><svg class="icon fill"><use href="#i-play"/></svg></button>
+                <button class="icon-btn" id="player-next-btn" type="button" aria-label="Berikutnya"><svg class="icon fill"><use href="#i-next"/></svg></button>
             </div>
             <div class="p-progress">
-                <span>1:12</span>
-                <input type="range" class="range" min="0" max="100" value="32" style="--value:32%" aria-label="Progres lagu">
-                <span>3:45</span>
+                <span id="player-current-time">0:00</span>
+                <input type="range" class="range" id="player-progress" min="0" max="100" step="0.1" value="0" style="--value:0%" aria-label="Progres lagu">
+                <span id="player-duration">0:00</span>
             </div>
         </div>
         <div class="p-vol">
-            <svg class="icon"><use href="#i-volume"/></svg>
-            <input type="range" class="range" min="0" max="100" value="70" style="--value:70%" aria-label="Volume">
+            <button class="icon-btn" id="player-video-btn" type="button" aria-label="Tampilkan video" aria-pressed="false"><svg class="icon"><use href="#i-video"/></svg></button>
+            <svg class="icon vol-icon"><use href="#i-volume"/></svg>
+            <input type="range" class="range" id="player-volume" min="0" max="100" value="70" style="--value:70%" aria-label="Volume">
         </div>
     </footer>
-</div>
 
-<!-- JavaScript ditambahkan di Tahap 4 dan 5 -->
+    <!-- Video YouTube (IFrame API). Ukuran 356x200 memenuhi syarat minimal YouTube. -->
+    <div class="video-dock is-hidden" id="video-dock">
+        <div id="youtube-player"></div>
+    </div>
+</div>
 </body>
 </html>

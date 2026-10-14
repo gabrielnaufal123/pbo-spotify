@@ -1,101 +1,116 @@
-// ========================================
-// MELODIFY - HOME PAGE
-// ========================================
+/*
+ * MELODIFY - HOME.JS (halaman Beranda)
+ * Rekomendasi, terakhir diputar, dan playlist semuanya berasal dari data nyata.
+ */
 
-document.addEventListener("DOMContentLoaded", () => {
+(function () {
 
-    const container = document.getElementById("recommended");
+    const recommended = document.getElementById("recommended");
+    const recent = document.getElementById("recent");
+    const playlistBox = document.getElementById("home-playlists");
 
-    // Hanya berjalan pada halaman yang memiliki rekomendasi
-    if (!container) return;
+    // =========================================
+    // REKOMENDASI (YouTube + riwayat putar + playlist)
+    // =========================================
 
     async function loadRecommendations() {
 
+        MelodifyUI.skeletonGrid(recommended, 5);
+
+        const history = MelodifyPlayer.getHistory();
+
         try {
 
-            container.textContent = "Memuat rekomendasi...";
+            const songs = await MelodifyAPI.getRecommendations({
+                artists: history.slice(0, 20).map(item => item.artist),
+                exclude: history.slice(0, 30).map(item => item.youtubeVideoId)
+            });
 
-            // Mengambil rekomendasi melalui Kotlin
-            const songs = await MelodifyAPI.getRecommendations();
-
-            container.replaceChildren();
-
-            if (songs.length === 0) {
-                container.textContent =
-                    "Belum ada rekomendasi tersedia.";
+            if (!Array.isArray(songs) || songs.length === 0) {
+                MelodifyUI.emptyState(
+                    recommended,
+                    "Belum ada rekomendasi. Coba putar beberapa lagu dulu."
+                );
                 return;
             }
 
-            // Daftar ini digunakan oleh player.js
-            setPlaylist(songs);
+            MelodifyUI.renderSongGrid(recommended, songs.slice(0, 10));
 
-            songs.slice(0, 4).forEach((song, index) => {
+        } catch (error) {
 
-                const card = document.createElement("div");
-                card.className = "card recommendation-card";
+            console.error("Rekomendasi:", error);
 
-                // Cover lagu
-                const cover = document.createElement("div");
-                cover.className = "cover recommendation-cover";
+            MelodifyUI.errorState(
+                recommended,
+                error.message || "Gagal mengambil rekomendasi YouTube.",
+                loadRecommendations
+            );
+        }
+    }
 
-                if (song.thumbnailUrl) {
+    // =========================================
+    // TERAKHIR DIPUTAR (localStorage)
+    // =========================================
 
-                    const image = document.createElement("img");
+    function loadRecent() {
 
-                    image.src = song.thumbnailUrl;
-                    image.alt = song.title;
-                    image.loading = "lazy";
+        const history = MelodifyPlayer.getHistory().slice(0, 5);
 
-                    cover.appendChild(image);
+        if (history.length === 0) {
+            MelodifyUI.emptyState(
+                recent,
+                "Belum ada lagu yang diputar. Cari lagu favoritmu di halaman Lagu.",
+                "Cari lagu",
+                "songs.html"
+            );
+            return;
+        }
 
-                } else {
+        MelodifyUI.renderSongGrid(recent, history);
+    }
 
-                    cover.textContent = "♫";
-                }
+    // =========================================
+    // PLAYLIST KAMU
+    // =========================================
 
-                // Judul lagu
-                const title = document.createElement("p");
+    async function loadPlaylists() {
 
-                title.className = "card-title";
-                title.textContent = song.title;
+        try {
 
-                // Artis / channel
-                const artist = document.createElement("p");
+            const playlists = await MelodifyAPI.getPlaylists();
 
-                artist.className = "card-sub";
-                artist.textContent = song.artist;
-
-                // Tombol putar
-                const playButton = document.createElement("button");
-
-                playButton.type = "button";
-                playButton.className = "recommendation-play";
-                playButton.textContent = "▶ Putar";
-
-                playButton.addEventListener("click", () => {
-
-                    setPlaylist(songs);
-                    playSong(index);
-                });
-
-                card.append(
-                    cover,
-                    title,
-                    artist,
-                    playButton
+            if (playlists.length === 0) {
+                MelodifyUI.emptyState(
+                    playlistBox,
+                    "Kamu belum punya playlist.",
+                    "Buat playlist pertama",
+                    "playlists.html"
                 );
+                return;
+            }
 
-                container.appendChild(card);
+            playlistBox.replaceChildren();
+
+            playlists.slice(0, 5).forEach(playlist => {
+                playlistBox.appendChild(MelodifyUI.playlistCard(playlist));
             });
 
         } catch (error) {
 
-            console.error(error);
+            console.error("Playlist:", error);
 
-            container.textContent =
-                "Gagal mengambil rekomendasi YouTube.";
+            MelodifyUI.errorState(
+                playlistBox,
+                "Gagal mengambil playlist: " + error.message,
+                loadPlaylists
+            );
         }
     }
 
+    // "Terakhir diputar" ikut diperbarui saat lagu mulai terputar
+    window.addEventListener("melodify:history-change", loadRecent);
+
     loadRecommendations();
-});
+    loadRecent();
+    loadPlaylists();
+})();

@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Lagu — Melodify</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Urutan penting: api -> player -> app -> script halaman. YouTube IFrame API dimuat oleh player.js -->
+    <script src="js/api.js" defer></script>
+    <script src="js/player.js" defer></script>
+    <script src="js/app.js" defer></script>
+    <script src="js/songs.js" defer></script>
 </head>
-
 <body>
-<script src="https://www.youtube.com/iframe_api"></script>
-<script src="/js/api.js"></script>
-<script src="/js/player.js"></script>
-<script src="/js/app.js"></script>
 <svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
     <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></symbol>
@@ -24,6 +24,7 @@
     <symbol id="i-prev" viewBox="0 0 24 24"><path d="M19 20L9 12l10-8z"/><path d="M5 5v14"/></symbol>
     <symbol id="i-next" viewBox="0 0 24 24"><path d="M5 4l10 8-10 8z"/><path d="M19 5v14"/></symbol>
     <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></symbol>
+    <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5l4.5 2.5-4.5 2.5z"/></symbol>
     <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
 </svg>
@@ -46,8 +47,7 @@
 
             <p class="side-label">Playlist kamu</p>
             <nav class="nav side-playlists" aria-label="Playlist">
-                <a href="playlistdtl.html"><span class="mini g4"></span><span>Good Vibes Only</span></a>
-                <a href="playlistdtl.html"><span class="mini g2"></span><span>Indie Anthems</span></a>
+                <span class="nav-items" id="side-playlist-items"></span>
                 <a href="playlists.html"><svg class="icon"><use href="#i-plus"/></svg><span>Buat playlist</span></a>
             </nav>
         </aside>
@@ -57,154 +57,50 @@
             <header class="page-head">
                 <div>
                     <h1>Lagu</h1>
-                    <p id="song-count">Memuat lagu...</p>
+                    <p id="song-count">Cari lagu atau artis di kolom pencarian</p>
                 </div>
                 <form id="search-form" class="search" role="search">
-                    <svg class="icon">
-                        <use href="#i-search"/>
-                    </svg>
-
-                    <input
-                            type="search"
-                            id="search-input"
-                            name="q"
-                            placeholder="Cari lagu atau artis di YouTube..."
-                            aria-label="Cari lagu atau artis"
-                    >
-
-                    <button type="submit" aria-label="Cari lagu">
-                        Cari
-                    </button>
+                    <svg class="icon"><use href="#i-search"/></svg>
+                    <input type="search" id="search-input" name="q" placeholder="Cari lagu atau artis" aria-label="Cari lagu atau artis" autocomplete="off">
+                    <button type="submit">Cari</button>
                 </form>
             </header>
-
-            <section class="songs-section">
-
-                <h2>Hasil Pencarian</h2>
-
-                <div id="search-results" class="song-results">
-                    <p>Cari lagu favoritmu melalui kolom pencarian.</p>
-                </div>
-
+            <section class="section">
+                <div class="section-head"><h2 id="songs-heading">Hasil Pencarian</h2></div>
+                <div class="grid" id="search-results" aria-live="polite"></div>
             </section>
-
-            <p class="empty" id="empty-state" hidden>Tidak ada lagu yang cocok dengan pencarian.</p>
         </main>
     </div>
 
     <!-- ===== PEMUTAR (sama di semua halaman) ===== -->
-
-    <!-- ===== PEMUTAR MUSIK ===== -->
-
     <footer class="player" aria-label="Pemutar musik">
-
-        <!-- Informasi lagu -->
         <div class="p-info">
-
-                <div class="p-info">
-                    <!-- Thumbnail, judul, dan artis -->
-                </div>
-
-                <div class="youtube-embed">
-                    <div id="youtube-player"></div>
-                </div>
-
-            <div class="p-text">
-
-                <strong id="player-title">
-                    Belum ada lagu
-                </strong>
-
-                <span id="player-artist">
-                Melodify
-            </span>
-
-            </div>
-
+            <span class="thumb g1" id="player-thumbnail" role="img" aria-label="Sampul lagu"></span>
+            <div class="p-text"><strong id="player-title">Belum ada lagu</strong><span id="player-artist">Pilih lagu untuk diputar</span></div>
         </div>
-
-        <!-- Kontrol player -->
         <div class="p-center">
-
             <div class="p-controls">
-
-                <button
-                        id="player-prev-btn"
-                        class="icon-btn"
-                        type="button"
-                        aria-label="Sebelumnya"
-                >
-                    <svg class="icon fill">
-                        <use href="#i-prev"/>
-                    </svg>
-                </button>
-
-                <button
-                        id="player-play-btn"
-                        class="icon-btn play"
-                        type="button"
-                        aria-label="Putar"
-                >
-                    ▶
-                </button>
-
-                <button
-                        id="player-next-btn"
-                        class="icon-btn"
-                        type="button"
-                        aria-label="Berikutnya"
-                >
-                    <svg class="icon fill">
-                        <use href="#i-next"/>
-                    </svg>
-                </button>
-
+                <button class="icon-btn" id="player-prev-btn" type="button" aria-label="Sebelumnya"><svg class="icon fill"><use href="#i-prev"/></svg></button>
+                <button class="icon-btn play" id="player-play-btn" type="button" aria-label="Putar"><svg class="icon fill"><use href="#i-play"/></svg></button>
+                <button class="icon-btn" id="player-next-btn" type="button" aria-label="Berikutnya"><svg class="icon fill"><use href="#i-next"/></svg></button>
             </div>
-
-            <!-- Progress lagu -->
             <div class="p-progress">
-
                 <span id="player-current-time">0:00</span>
-
-                <input
-                        id="player-progress"
-                        type="range"
-                        class="range"
-                        min="0"
-                        max="100"
-                        value="0"
-                        aria-label="Progres lagu"
-                >
-
+                <input type="range" class="range" id="player-progress" min="0" max="100" step="0.1" value="0" style="--value:0%" aria-label="Progres lagu">
                 <span id="player-duration">0:00</span>
-
             </div>
-
         </div>
-
-        <!-- Volume -->
         <div class="p-vol">
-
-            <svg class="icon">
-                <use href="#i-volume"/>
-            </svg>
-
-            <input
-                    id="player-volume"
-                    type="range"
-                    class="range"
-                    min="0"
-                    max="100"
-                    value="70"
-                    aria-label="Volume"
-            >
-
+            <button class="icon-btn" id="player-video-btn" type="button" aria-label="Tampilkan video" aria-pressed="false"><svg class="icon"><use href="#i-video"/></svg></button>
+            <svg class="icon vol-icon"><use href="#i-volume"/></svg>
+            <input type="range" class="range" id="player-volume" min="0" max="100" value="70" style="--value:70%" aria-label="Volume">
         </div>
-
     </footer>
 
+    <!-- Video YouTube (IFrame API). Ukuran 356x200 memenuhi syarat minimal YouTube. -->
+    <div class="video-dock is-hidden" id="video-dock">
+        <div id="youtube-player"></div>
+    </div>
 </div>
-
-<!-- JavaScript ditambahkan di Tahap 4 dan 5 -->
 </body>
 </html>

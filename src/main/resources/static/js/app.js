@@ -1,892 +1,438 @@
-
 /*
- * ============================================
  * MELODIFY - APP.JS
- * ============================================
+ * Komponen UI yang dipakai bersama oleh semua halaman:
+ * toast, kartu lagu, kartu playlist, sidebar, dan dialog "tambah ke playlist".
  *
- * File ini menghubungkan:
- * - HTML
- * - api.js
- * - player.js
- * - Backend Kotlin Ktor
- *
- * Urutan script pada HTML:
- * 1. YouTube IFrame API
- * 2. api.js
- * 3. player.js
- * 4. app.js
+ * Logika tiap halaman ada di file masing-masing
+ * (home.js, songs.js, playlists.js, playlist-detail.js).
+ * Satu form/tombol hanya boleh dipasang event-nya oleh SATU file.
  */
 
-const MelodifyApp = {
+const MelodifyUI = {
+
+    gradients: ["g1", "g2", "g3", "g4", "g5", "g6", "g7"],
 
     // =========================================
-    // STATE APLIKASI
+    // HELPER DOM
     // =========================================
 
-    searchResults: [],
-    recommendations: [],
-    playlists: [],
-    playlistItems: [],
+    el(tag, className = "", text = "") {
 
-    selectedSong: null,
-    currentPlaylistId: null,
+        const element = document.createElement(tag);
 
-    // =========================================
-    // INITIALIZATION
-    // =========================================
+        if (className) element.className = className;
+        if (text) element.textContent = text;
 
-    async init() {
+        return element;
+    },
 
-        console.log("Melodify App initialized");
+    icon(name, extraClass = "") {
 
-        this.bindEvents();
-        this.bindPlayerEvents();
+        const ns = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(ns, "svg");
+        const use = document.createElementNS(ns, "use");
 
-        // Memuat playlist untuk sidebar / halaman playlist
-        await this.loadPlaylists();
+        svg.setAttribute("class", `icon ${extraClass}`.trim());
+        use.setAttribute("href", `#i-${name}`);
+        svg.appendChild(use);
 
-        // Menentukan halaman berdasarkan elemen HTML
-        if (document.getElementById("recommendations")) {
-            await this.loadRecommendations();
-        }
+        return svg;
+    },
 
-        if (document.getElementById("playlist-list")) {
-            this.renderPlaylists();
-        }
+    iconButton(iconName, label, className, onClick) {
 
-        // Halaman detail playlist
-        const params = new URLSearchParams(window.location.search);
+        const button = this.el("button", className);
 
-        const playlistId = params.get("id");
+        button.type = "button";
+        button.setAttribute("aria-label", label);
+        button.title = label;
+        button.appendChild(this.icon(iconName));
+        button.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onClick();
+        });
 
-        if (
-            playlistId &&
-            document.getElementById("playlist-items")
-        ) {
-            await this.loadPlaylistDetail(Number(playlistId));
-        }
+        return button;
+    },
+
+    gradientFor(id) {
+        return this.gradients[Math.abs(Number(id) || 0) % this.gradients.length];
+    },
+
+    thumbUrl(song) {
+        return song.thumbnailUrl ||
+            `https://img.youtube.com/vi/${song.youtubeVideoId}/mqdefault.jpg`;
     },
 
     // =========================================
-    // EVENT LISTENERS
+    // TOAST
     // =========================================
 
-    bindEvents() {
+    toast(message, type = "info") {
 
-        // FORM PENCARIAN
+        let stack = document.getElementById("toast-stack");
 
-        // =========================================
-        // FORM PENCARIAN YOUTUBE
-        // =========================================
-
-        const searchForm = document.getElementById("search-form");
-        const searchInput = document.getElementById("search-input");
-
-        if (searchForm && searchInput) {
-
-            searchForm.addEventListener("submit", async (event) => {
-
-                event.preventDefault();
-
-                const keyword = searchInput.value.trim();
-
-                console.log("Mencari lagu:", keyword);
-
-                if (!keyword) {
-                    this.showMessage(
-                        "Masukkan judul lagu atau nama artis terlebih dahulu."
-                    );
-                    return;
-                }
-
-                await this.searchSongs(keyword);
-            });
-
-        } else {
-            console.warn(
-                "Form pencarian tidak ditemukan. Periksa ID pada songs.html."
-            );
+        if (!stack) {
+            stack = this.el("div", "toast-stack");
+            stack.id = "toast-stack";
+            stack.setAttribute("role", "status");
+            document.body.appendChild(stack);
         }
 
+        const toast = this.el("div", `toast ${type}`, message);
 
-        // FORM MEMBUAT PLAYLIST
-        const createPlaylistForm = document.getElementById(
-            "create-playlist-form"
+        stack.appendChild(toast);
+
+        setTimeout(() => toast.remove(), 3500);
+    },
+
+    // =========================================
+    // KARTU LAGU
+    // =========================================
+
+    /*
+     * song  : { youtubeVideoId, title, artist, thumbnailUrl }
+     * queue : daftar lagu yang menjadi antrean saat kartu ini diputar
+     */
+    songCard(song, queue, index) {
+
+        const card = this.el("article", "song-card");
+        card.dataset.videoId = song.youtubeVideoId;
+
+        const cover = this.el("div", "song-cover");
+
+        const image = document.createElement("img");
+        image.src = this.thumbUrl(song);
+        image.alt = "";
+        image.loading = "lazy";
+        image.referrerPolicy = "no-referrer";
+        image.addEventListener("error", () => {
+            image.remove();
+            cover.classList.add(this.gradientFor(index));
+        });
+
+        const playButton = this.iconButton(
+            "play",
+            `Putar ${song.title}`,
+            "song-play",
+            () => MelodifyPlayer.setQueue(queue, index)
+        );
+        playButton.querySelector(".icon").classList.add("fill");
+
+        const addButton = this.iconButton(
+            "plus",
+            "Tambah ke playlist",
+            "cover-btn",
+            () => this.pickPlaylist(song)
         );
 
-        if (createPlaylistForm) {
+        cover.append(image, playButton, addButton);
 
-            createPlaylistForm.addEventListener(
-                "submit",
-                async (event) => {
+        const title = this.el("p", "song-title", song.title);
+        title.title = song.title;
 
-                    event.preventDefault();
+        const artist = this.el("p", "song-artist", song.artist);
 
-                    const name = document.getElementById(
-                        "playlist-name"
-                    )?.value.trim();
+        card.append(cover, title, artist);
 
-                    const description = document.getElementById(
-                        "playlist-description"
-                    )?.value.trim() || "";
-
-                    if (!name) {
-                        this.showMessage("Nama playlist tidak boleh kosong.");
-                        return;
-                    }
-
-                    await this.createPlaylist(name, description);
-
-                    createPlaylistForm.reset();
-                }
-            );
-        }
-
-        // TOMBOL PLAYER
-        document.getElementById("player-play-btn")
-            ?.addEventListener("click", () => {
-                MelodifyPlayer.togglePlay();
-            });
-
-        document.getElementById("player-next-btn")
-            ?.addEventListener("click", () => {
-                MelodifyPlayer.next();
-            });
-
-        document.getElementById("player-prev-btn")
-            ?.addEventListener("click", () => {
-                MelodifyPlayer.previous();
-            });
-
-        // VOLUME
-        document.getElementById("player-volume")
-            ?.addEventListener("input", (event) => {
-                MelodifyPlayer.setVolume(event.target.value);
-            });
-
-        // PROGRESS
-        document.getElementById("player-progress")
-            ?.addEventListener("input", (event) => {
-                MelodifyPlayer.seekTo(event.target.value);
-            });
+        return card;
     },
 
-    // =========================================
-    // PLAYER EVENTS
-    // =========================================
+    renderSongGrid(container, songs) {
 
-    bindPlayerEvents() {
-
-        window.addEventListener(
-            "melodify:song-change",
-            (event) => {
-
-                const song = event.detail.song;
-
-                console.log("Lagu diputar:", song.title);
-
-                this.selectedSong = song;
-            }
-        );
-
-        window.addEventListener(
-            "melodify:player-error",
-            () => {
-
-                this.showMessage(
-                    "Video tidak dapat diputar. Coba lagu lainnya."
-                );
-            }
-        );
-    },
-
-    // =========================================
-    // SEARCH YOUTUBE
-    // =========================================
-
-
-    // =========================================
-    // SEARCH YOUTUBE
-    // =========================================
-
-    async searchSongs(keyword) {
-
-        const container = document.getElementById("search-results");
-        const songCount = document.getElementById("song-count");
-
-        if (!container) {
-            console.error("Elemen #search-results tidak ditemukan.");
-            return;
-        }
-
-        container.textContent = "Sedang mencari lagu...";
-
-        if (songCount) {
-            songCount.textContent = "Mencari lagu...";
-        }
-
-        try {
-
-            const songs = await MelodifyAPI.searchYouTube(keyword);
-
-            this.searchResults = Array.isArray(songs) ? songs : [];
-
-            this.renderSongs(
-                this.searchResults,
-                "search-results"
-            );
-
-            if (songCount) {
-                songCount.textContent =
-                    `${this.searchResults.length} hasil pencarian ditemukan`;
-            }
-
-        } catch (error) {
-
-            console.error("Search error:", error);
-
-            container.textContent = "";
-
-            if (songCount) {
-                songCount.textContent = "Pencarian gagal";
-            }
-
-            this.showMessage(
-                "Gagal mencari lagu: " + error.message
-            );
-        }
-    },
-
-    // =========================================
-    // RECOMMENDATIONS
-    // =========================================
-
-    async loadRecommendations() {
-
-        const container = document.getElementById("recommendations");
-
-        if (!container) return;
-
-        container.innerHTML = "<p>Memuat rekomendasi...</p>";
-
-        try {
-
-            const songs = await MelodifyAPI.getRecommendations();
-
-            this.recommendations = Array.isArray(songs) ? songs : [];
-
-            this.renderSongs(
-                this.recommendations,
-                "recommendations"
-            );
-
-        } catch (error) {
-
-            console.error("Recommendation error:", error);
-
-            container.textContent =
-                "Rekomendasi belum tersedia.";
-        }
-    },
-
-    // =========================================
-    // RENDER SONGS
-    // =========================================
-
-    renderSongs(songs, containerId) {
-
-        const container = document.getElementById(containerId);
-
-        if (!container) return;
-
-        container.innerHTML = "";
-
-        if (!songs || songs.length === 0) {
-
-            container.innerHTML = "<p>Tidak ada lagu ditemukan.</p>";
-
-            return;
-        }
+        container.replaceChildren();
 
         songs.forEach((song, index) => {
+            container.appendChild(this.songCard(song, songs, index));
+        });
 
-            const card = document.createElement("div");
+        this.markPlaying();
+    },
 
-            card.className = "song-card";
+    skeletonGrid(container, count = 5) {
 
-            const thumbnail = document.createElement("img");
+        container.replaceChildren();
 
-            thumbnail.src = song.thumbnailUrl ||
-                `https://img.youtube.com/vi/${song.youtubeVideoId}/mqdefault.jpg`;
+        for (let i = 0; i < count; i++) {
 
-            thumbnail.alt = song.title;
+            const card = this.el("div", "song-card skeleton");
 
-            thumbnail.loading = "lazy";
-
-            const info = document.createElement("div");
-
-            info.className = "song-info";
-
-            const title = document.createElement("h3");
-            title.textContent = song.title;
-
-            const artist = document.createElement("p");
-            artist.textContent = song.artist;
-
-            info.appendChild(title);
-            info.appendChild(artist);
-
-            const actions = document.createElement("div");
-
-            actions.className = "song-actions";
-
-            // TOMBOL PLAY
-            const playButton = document.createElement("button");
-
-            playButton.type = "button";
-            playButton.textContent = "▶ Play";
-
-            playButton.addEventListener("click", () => {
-
-                // Memutar seluruh hasil pencarian sebagai antrean
-                MelodifyPlayer.setQueue(songs, index);
-
-            });
-
-            // TOMBOL TAMBAH KE PLAYLIST
-            const addButton = document.createElement("button");
-
-            addButton.type = "button";
-            addButton.textContent = "+ Playlist";
-
-            addButton.addEventListener("click", async () => {
-
-                this.selectedSong = song;
-
-                await this.choosePlaylist(song);
-            });
-
-            actions.appendChild(playButton);
-            actions.appendChild(addButton);
-
-            card.appendChild(thumbnail);
-            card.appendChild(info);
-            card.appendChild(actions);
+            card.append(
+                this.el("div", "song-cover"),
+                this.el("div", "line"),
+                this.el("div", "line short")
+            );
 
             container.appendChild(card);
+        }
+    },
+
+    // Tandai kartu / baris yang sedang diputar
+    markPlaying() {
+
+        const currentId = MelodifyPlayer.current?.youtubeVideoId;
+
+        document.querySelectorAll("[data-video-id]").forEach(element => {
+            element.classList.toggle(
+                "is-playing",
+                !!currentId && element.dataset.videoId === currentId
+            );
         });
     },
 
     // =========================================
-    // LOAD PLAYLISTS
+    // STATUS KOSONG / ERROR
     // =========================================
 
-    async loadPlaylists() {
+    emptyState(container, message, linkText, linkHref) {
 
-        try {
+        const box = this.el("div", "state-box");
 
-            const data = await MelodifyAPI.getPlaylists();
+        box.appendChild(this.el("span", "", message));
 
-            this.playlists = Array.isArray(data) ? data : [];
-
-            this.renderPlaylists();
-
-        } catch (error) {
-
-            console.error("Load playlists error:", error);
-
-            this.showMessage(
-                "Gagal mengambil playlist: " + error.message
-            );
+        if (linkText) {
+            const link = this.el("a", "", linkText);
+            link.href = linkHref;
+            box.appendChild(link);
         }
+
+        container.replaceChildren(box);
+    },
+
+    errorState(container, message, onRetry) {
+
+        const box = this.el("div", "state-box error");
+
+        box.appendChild(this.el("span", "", message));
+
+        if (onRetry) {
+            const retry = this.el("button", "btn ghost", "Coba lagi");
+            retry.type = "button";
+            retry.addEventListener("click", onRetry);
+            box.appendChild(retry);
+        }
+
+        container.replaceChildren(box);
     },
 
     // =========================================
-    // RENDER PLAYLISTS
+    // KARTU PLAYLIST
     // =========================================
 
-    renderPlaylists() {
+    playlistCard(playlist, onDelete) {
 
-        const container = document.getElementById("playlist-list");
+        const wrapper = this.el("div", "playlist-card");
 
-        if (!container) return;
+        const link = this.el("a", "card");
+        link.href = `playlistdtl.html?id=${playlist.id}`;
 
-        container.innerHTML = "";
+        const cover = this.el("div", `cover ${this.gradientFor(playlist.id)}`);
+        cover.appendChild(this.icon("list"));
 
-        if (this.playlists.length === 0) {
+        const title = this.el("p", "card-title", playlist.name);
+        title.title = playlist.name;
 
-            container.innerHTML =
-                "<p>Belum ada playlist. Buat playlist pertamamu!</p>";
+        const sub = this.el("p", "card-sub", `${playlist.totalSongs || 0} lagu`);
 
-            return;
+        link.append(cover, title, sub);
+        wrapper.appendChild(link);
+
+        if (onDelete) {
+            wrapper.appendChild(
+                this.iconButton(
+                    "x",
+                    `Hapus playlist ${playlist.name}`,
+                    "cover-btn danger",
+                    () => onDelete(playlist)
+                )
+            );
         }
 
-        this.playlists.forEach((playlist) => {
+        return wrapper;
+    },
 
-            const card = document.createElement("div");
+    // =========================================
+    // SIDEBAR
+    // =========================================
 
-            card.className = "playlist-card";
+    async loadSidebarPlaylists() {
 
-            const info = document.createElement("div");
+        const nav = document.getElementById("side-playlist-items");
 
-            info.className = "playlist-info";
+        if (!nav) return;
 
-            const title = document.createElement("h3");
+        const activeId = new URLSearchParams(location.search).get("id");
+        const onDetailPage = location.pathname.endsWith("playlistdtl.html");
 
-            title.textContent = playlist.name;
+        try {
 
-            const description = document.createElement("p");
+            const playlists = await MelodifyAPI.getPlaylists();
 
-            description.textContent =
-                playlist.description || "Tidak ada deskripsi";
+            nav.replaceChildren();
 
-            const totalSongs = document.createElement("small");
+            playlists.slice(0, 8).forEach(playlist => {
 
-            totalSongs.textContent =
-                `${playlist.totalSongs || 0} lagu`;
+                const link = this.el("a");
+                link.href = `playlistdtl.html?id=${playlist.id}`;
 
-            info.appendChild(title);
-            info.appendChild(description);
-            info.appendChild(totalSongs);
+                if (onDetailPage && String(playlist.id) === activeId) {
+                    link.classList.add("active");
+                }
 
-            const actions = document.createElement("div");
+                const mini = this.el("span", `mini ${this.gradientFor(playlist.id)}`);
+                const name = this.el("span", "", playlist.name);
+                name.style.overflow = "hidden";
+                name.style.textOverflow = "ellipsis";
+                name.style.whiteSpace = "nowrap";
 
-            actions.className = "playlist-actions";
-
-            // BUKA PLAYLIST
-            const openButton = document.createElement("button");
-
-            openButton.type = "button";
-            openButton.textContent = "Buka";
-
-            openButton.addEventListener("click", () => {
-
-                window.location.href =
-                    `/playlistdtl.html?id=${playlist.id}`;
+                link.append(mini, name);
+                nav.appendChild(link);
             });
 
-            // HAPUS PLAYLIST
-            const deleteButton = document.createElement("button");
-
-            deleteButton.type = "button";
-            deleteButton.textContent = "Hapus";
-
-            deleteButton.addEventListener("click", async () => {
-
-                await this.deletePlaylist(playlist.id);
-            });
-
-            actions.appendChild(openButton);
-            actions.appendChild(deleteButton);
-
-            card.appendChild(info);
-            card.appendChild(actions);
-
-            container.appendChild(card);
-        });
-    },
-
-    // =========================================
-    // CREATE PLAYLIST
-    // =========================================
-
-    async createPlaylist(name, description = "") {
-
-        try {
-
-            const playlist = await MelodifyAPI.createPlaylist(
-                name,
-                description
-            );
-
-            this.showMessage(
-                `Playlist "${playlist.name}" berhasil dibuat!`
-            );
-
-            await this.loadPlaylists();
-
-            return playlist;
-
         } catch (error) {
-
-            console.error("Create playlist error:", error);
-
-            this.showMessage(
-                "Gagal membuat playlist: " + error.message
-            );
-
-            return null;
+            nav.replaceChildren();
+            console.error("Sidebar playlist:", error);
         }
     },
 
     // =========================================
-    // DELETE PLAYLIST
+    // DIALOG TAMBAH KE PLAYLIST
     // =========================================
 
-    async deletePlaylist(playlistId) {
+    async pickPlaylist(song) {
 
-        const confirmed = confirm(
-            "Yakin ingin menghapus playlist ini?"
-        );
-
-        if (!confirmed) return;
+        let playlists;
 
         try {
-
-            await MelodifyAPI.deletePlaylist(playlistId);
-
-            this.showMessage("Playlist berhasil dihapus.");
-
-            await this.loadPlaylists();
-
+            playlists = await MelodifyAPI.getPlaylists();
         } catch (error) {
-
-            console.error("Delete playlist error:", error);
-
-            this.showMessage(
-                "Gagal menghapus playlist: " + error.message
-            );
-        }
-    },
-
-    // =========================================
-    // CHOOSE PLAYLIST
-    // =========================================
-
-    async choosePlaylist(song) {
-
-        // Memastikan data playlist terbaru
-        try {
-
-            const data = await MelodifyAPI.getPlaylists();
-
-            this.playlists = Array.isArray(data) ? data : [];
-
-        } catch (error) {
-
-            this.showMessage(
-                "Gagal mengambil playlist: " + error.message
-            );
-
+            this.toast("Gagal mengambil playlist: " + error.message, "error");
             return;
         }
 
-        if (this.playlists.length === 0) {
+        const backdrop = this.el("div", "modal-backdrop");
+        const modal = this.el("div", "modal");
 
-            this.showMessage(
-                "Kamu belum mempunyai playlist. Buat playlist dahulu."
-            );
+        modal.setAttribute("role", "dialog");
+        modal.setAttribute("aria-modal", "true");
+        modal.setAttribute("aria-label", "Tambah ke playlist");
 
-            return;
-        }
-
-        // Menampilkan daftar playlist yang dapat dipilih
-        const options = this.playlists
-            .map(playlist => {
-                return `${playlist.id}. ${playlist.name}`;
-            })
-            .join("\n");
-
-        const answer = prompt(
-            "Pilih ID playlist untuk menambahkan lagu:\n\n" +
-            options
+        const head = this.el("div");
+        head.append(
+            this.el("h3", "", "Tambah ke playlist"),
+            this.el("p", "muted", song.title)
         );
 
-        if (answer === null) return;
+        const close = () => {
+            backdrop.remove();
+            document.removeEventListener("keydown", onKey);
+        };
 
-        const playlistId = Number(answer.trim());
+        const onKey = (event) => {
+            if (event.key === "Escape") close();
+        };
 
-        const selectedPlaylist = this.playlists.find(
-            playlist => playlist.id === playlistId
-        );
+        const addTo = async (playlistId, playlistName) => {
 
-        if (!selectedPlaylist) {
+            try {
 
-            this.showMessage("ID playlist tidak valid.");
+                await MelodifyAPI.addToPlaylist(playlistId, song);
 
-            return;
-        }
+                this.toast(`Ditambahkan ke "${playlistName}"`, "success");
+                close();
+                this.loadSidebarPlaylists();
 
-        await this.addSongToPlaylist(
-            playlistId,
-            song
-        );
-    },
-
-    // =========================================
-    // ADD SONG TO PLAYLIST
-    // =========================================
-
-    async addSongToPlaylist(playlistId, song) {
-
-        try {
-
-            await MelodifyAPI.addToPlaylist(
-                playlistId,
-                song
-            );
-
-            this.showMessage(
-                `"${song.title}" berhasil ditambahkan ke playlist!`
-            );
-
-            await this.loadPlaylists();
-
-            // Refresh halaman detail jika playlist yang sama terbuka
-            if (this.currentPlaylistId === playlistId) {
-
-                await this.loadPlaylistDetail(playlistId);
-            }
-
-        } catch (error) {
-
-            console.error("Add song error:", error);
-
-            this.showMessage(
-                "Gagal menambahkan lagu: " + error.message
-            );
-        }
-    },
-
-    // =========================================
-    // LOAD PLAYLIST DETAIL
-    // =========================================
-
-    async loadPlaylistDetail(playlistId) {
-
-        if (!Number.isInteger(playlistId) || playlistId <= 0) {
-
-            this.showMessage("ID playlist tidak valid.");
-
-            return;
-        }
-
-        this.currentPlaylistId = playlistId;
-
-        const container = document.getElementById("playlist-items");
-
-        if (container) {
-            container.innerHTML = "<p>Memuat isi playlist...</p>";
-        }
-
-        try {
-
-            // Mengambil informasi playlist
-            const playlist = await MelodifyAPI.getPlaylist(
-                playlistId
-            );
-
-            // Mengambil daftar lagu playlist
-            const items = await MelodifyAPI.getPlaylistItems(
-                playlistId
-            );
-
-            this.playlistItems = Array.isArray(items) ? items : [];
-
-            // Menampilkan judul dan deskripsi playlist
-            const title = document.getElementById(
-                "playlist-detail-title"
-            );
-
-            const description = document.getElementById(
-                "playlist-detail-description"
-            );
-
-            if (title) {
-                title.textContent = playlist.name;
-            }
-
-            if (description) {
-                description.textContent =
-                    playlist.description || "";
-            }
-
-            this.renderPlaylistItems();
-
-        } catch (error) {
-
-            console.error("Playlist detail error:", error);
-
-            if (container) {
-                container.innerHTML = "";
-            }
-
-            this.showMessage(
-                "Gagal mengambil detail playlist: " + error.message
-            );
-        }
-    },
-
-    // =========================================
-    // RENDER PLAYLIST ITEMS
-    // =========================================
-
-    renderPlaylistItems() {
-
-        const container = document.getElementById(
-            "playlist-items"
-        );
-
-        if (!container) return;
-
-        container.innerHTML = "";
-
-        if (this.playlistItems.length === 0) {
-
-            container.innerHTML =
-                "<p>Playlist ini belum memiliki lagu.</p>";
-
-            return;
-        }
-
-        // Mengubah PlaylistItemResponse menjadi data Song
-        const songs = this.playlistItems.map(item => ({
-
-            youtubeVideoId: item.youtubeVideoId,
-            title: item.title,
-            artist: item.artist,
-            thumbnailUrl: item.thumbnailUrl
-
-        }));
-
-        this.playlistItems.forEach((item, index) => {
-
-            const card = document.createElement("div");
-
-            card.className = "song-card";
-
-            const thumbnail = document.createElement("img");
-
-            thumbnail.src = item.thumbnailUrl ||
-                `https://img.youtube.com/vi/${item.youtubeVideoId}/mqdefault.jpg`;
-
-            thumbnail.alt = item.title;
-
-            thumbnail.loading = "lazy";
-
-            const info = document.createElement("div");
-
-            info.className = "song-info";
-
-            const title = document.createElement("h3");
-
-            title.textContent = item.title;
-
-            const artist = document.createElement("p");
-
-            artist.textContent = item.artist;
-
-            info.appendChild(title);
-            info.appendChild(artist);
-
-            const actions = document.createElement("div");
-
-            actions.className = "song-actions";
-
-            // PLAY
-            const playButton = document.createElement("button");
-
-            playButton.type = "button";
-            playButton.textContent = "▶ Play";
-
-            playButton.addEventListener("click", () => {
-
-                MelodifyPlayer.setQueue(songs, index);
-
-            });
-
-            // REMOVE
-            const removeButton = document.createElement("button");
-
-            removeButton.type = "button";
-            removeButton.textContent = "Hapus";
-
-            removeButton.addEventListener("click", async () => {
-
-                await this.removeSongFromPlaylist(
-                    this.currentPlaylistId,
-                    item.id
+                window.dispatchEvent(
+                    new CustomEvent("melodify:playlist-change")
                 );
-            });
 
-            actions.appendChild(playButton);
-            actions.appendChild(removeButton);
+            } catch (error) {
+                this.toast(error.message, "error");
+            }
+        };
 
-            card.appendChild(thumbnail);
-            card.appendChild(info);
-            card.appendChild(actions);
+        const list = this.el("div", "modal-list");
 
-            container.appendChild(card);
+        if (playlists.length === 0) {
+            list.appendChild(
+                this.el("p", "muted", "Belum ada playlist. Buat satu di bawah.")
+            );
+        }
+
+        playlists.forEach(playlist => {
+
+            const row = this.el("button");
+            row.type = "button";
+
+            const info = this.el("span");
+            info.append(
+                this.el("span", "", playlist.name),
+                this.el("small", "", `${playlist.totalSongs || 0} lagu`)
+            );
+
+            row.append(
+                this.el("span", `mini ${this.gradientFor(playlist.id)}`),
+                info
+            );
+
+            row.addEventListener("click", () => addTo(playlist.id, playlist.name));
+            list.appendChild(row);
         });
-    },
 
-    // =========================================
-    // REMOVE SONG FROM PLAYLIST
-    // =========================================
+        // Buat playlist baru langsung dari dialog
+        const form = this.el("form", "modal-new");
+        const input = document.createElement("input");
 
-    async removeSongFromPlaylist(playlistId, itemId) {
+        input.placeholder = "Nama playlist baru";
+        input.maxLength = 150;
+        input.required = true;
 
-        const confirmed = confirm(
-            "Yakin ingin menghapus lagu ini dari playlist?"
-        );
+        const submit = this.el("button", "btn primary", "Buat & tambah");
+        submit.type = "submit";
 
-        if (!confirmed) return;
+        form.append(input, submit);
 
-        try {
+        form.addEventListener("submit", async (event) => {
 
-            await MelodifyAPI.removePlaylistItem(
-                playlistId,
-                itemId
-            );
+            event.preventDefault();
 
-            this.showMessage("Lagu berhasil dihapus dari playlist.");
+            const name = input.value.trim();
 
-            await this.loadPlaylistDetail(playlistId);
+            if (!name) return;
 
-            await this.loadPlaylists();
+            submit.disabled = true;
 
-        } catch (error) {
+            try {
+                const created = await MelodifyAPI.createPlaylist(name, "");
+                await addTo(created.id, created.name);
+            } catch (error) {
+                this.toast(error.message, "error");
+            } finally {
+                submit.disabled = false;
+            }
+        });
 
-            console.error("Remove song error:", error);
+        const cancel = this.el("button", "btn ghost close", "Batal");
+        cancel.type = "button";
+        cancel.addEventListener("click", close);
 
-            this.showMessage(
-                "Gagal menghapus lagu: " + error.message
-            );
-        }
-    },
+        modal.append(head, list, form, cancel);
+        backdrop.appendChild(modal);
 
-    // =========================================
-    // MESSAGE
-    // =========================================
+        backdrop.addEventListener("click", (event) => {
+            if (event.target === backdrop) close();
+        });
 
-    showMessage(message) {
+        document.addEventListener("keydown", onKey);
+        document.body.appendChild(backdrop);
 
-        const messageBox = document.getElementById("app-message");
-
-        if (messageBox) {
-
-            messageBox.textContent = message;
-
-            messageBox.style.display = "block";
-
-            return;
-        }
-
-        // Jika HTML belum menyediakan #app-message
-        alert(message);
+        input.focus();
     }
 };
 
-// =========================================
-// START APPLICATION
-// =========================================
+// Sorot lagu yang sedang diputar di semua halaman
+window.addEventListener("melodify:song-change", () => MelodifyUI.markPlaying());
 
-document.addEventListener("DOMContentLoaded", () => {
-
-    MelodifyApp.init().catch(error => {
-
-        console.error("Melodify initialization error:", error);
-
-    });
-
-});
+// Sidebar dimuat di setiap halaman
+MelodifyUI.loadSidebarPlaylists();

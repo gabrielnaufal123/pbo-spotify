@@ -1,82 +1,115 @@
+/*
+ * MELODIFY - API.JS
+ * Satu-satunya pintu komunikasi frontend dengan backend Kotlin.
+ */
+
 const MelodifyAPI = {
 
     async request(url, options = {}) {
+
         const response = await fetch(url, options);
 
+        // DELETE mengembalikan HTTP 204 tanpa body
         if (response.status === 204) {
             return null;
         }
 
-        const data = await response.json();
+        let data = null;
+
+        try {
+            data = await response.json();
+        } catch (error) {
+            // body kosong atau bukan JSON
+        }
 
         if (!response.ok) {
             throw new Error(
-                data.error || `HTTP Error ${response.status}`
+                (data && data.error) ||
+                `Server bermasalah (HTTP ${response.status})`
             );
         }
 
         return data;
     },
 
-    // Pencarian dari YouTube melalui Kotlin
-    async searchYouTube(keyword) {
+    json(method, body) {
+        return {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        };
+    },
+
+    // =====================================
+    // YOUTUBE
+    // =====================================
+
+    searchYouTube(keyword) {
         return this.request(
-            "/api/youtube/search?q=" +
-            encodeURIComponent(keyword)
+            "/api/youtube/search?q=" + encodeURIComponent(keyword)
         );
     },
 
-    // Mengambil semua playlist
-    async getPlaylists() {
+    // artists = artis dari riwayat putar (terbaru dulu)
+    // exclude = ID video yang tidak perlu direkomendasikan lagi
+    getRecommendations({ artists = [], exclude = [] } = {}) {
+
+        const params = new URLSearchParams();
+
+        artists.forEach(artist => params.append("artist", artist));
+        exclude.forEach(id => params.append("exclude", id));
+
+        const query = params.toString();
+
+        return this.request(
+            "/api/youtube/recommendations" + (query ? "?" + query : "")
+        );
+    },
+
+    // =====================================
+    // PLAYLIST
+    // =====================================
+
+    getPlaylists() {
         return this.request("/api/playlists");
     },
 
-    // Membuat playlist
-    async createPlaylist(name, description = "") {
-        return this.request("/api/playlists", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ name, description })
-        });
+    createPlaylist(name, description = "") {
+        return this.request(
+            "/api/playlists",
+            this.json("POST", { name, description })
+        );
     },
 
-    // Mengambil informasi satu playlist
-    async getPlaylist(id) {
+    getPlaylist(id) {
         return this.request(`/api/playlists/${id}`);
     },
 
-    // Mengambil isi playlist
-    async getPlaylistItems(id) {
+    deletePlaylist(id) {
+        return this.request(`/api/playlists/${id}`, { method: "DELETE" });
+    },
+
+    // =====================================
+    // ISI PLAYLIST
+    // =====================================
+
+    getPlaylistItems(id) {
         return this.request(`/api/playlists/${id}/items`);
     },
 
-    // Menambahkan lagu YouTube
-    async addToPlaylist(id, song) {
-        return this.request(`/api/playlists/${id}/items`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
+    addToPlaylist(id, song) {
+        return this.request(
+            `/api/playlists/${id}/items`,
+            this.json("POST", {
                 youtubeVideoId: song.youtubeVideoId,
                 title: song.title,
                 artist: song.artist,
                 thumbnailUrl: song.thumbnailUrl || ""
             })
-        });
+        );
     },
 
-    // Menghapus playlist
-    async deletePlaylist(id) {
-        return this.request(`/api/playlists/${id}`, {
-            method: "DELETE"
-        });
-    },
-
-    // Menghapus satu lagu
-    async removePlaylistItem(playlistId, itemId) {
+    removePlaylistItem(playlistId, itemId) {
         return this.request(
             `/api/playlists/${playlistId}/items/${itemId}`,
             { method: "DELETE" }
