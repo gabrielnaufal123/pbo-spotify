@@ -413,3 +413,21 @@ h1, h2, h3, p { margin: 0; }
 .recommendation-play:hover {
     background: #1ed760;
 }
+
+.playlist-track-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.playlist-track-info img {
+    width: 56px;
+    height: 42px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: #303030;
+}
+
+.playlist-track-info span {
+    font-weight: 500;
+}
