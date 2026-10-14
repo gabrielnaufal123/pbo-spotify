@@ -6,6 +6,12 @@ import com.melodify.models.YouTubeVideoDTO
 class MusicService(
     private val videoProvider: VideoProvider
 ) {
+    suspend fun getRecommendations(): List<YouTubeVideoDTO> {
+
+        val keyword = "official music video"
+
+        return searchSongs(keyword)
+    }
 
     suspend fun searchSongs(
         keyword: String
