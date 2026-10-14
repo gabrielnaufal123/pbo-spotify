@@ -6,42 +6,41 @@ class Playlist(
     var description: String = ""
 ) {
 
-    // Encapsulation: daftar lagu tidak bisa diubah langsung dari luar class
     private val songs = mutableListOf<Song>()
 
-    // Menambahkan lagu ke playlist
     fun addSong(song: Song): Boolean {
 
-        // Cegah video yang sama masuk dua kali
-        if (songs.any {
-                it.youtubeVideoId == song.youtubeVideoId
-            }) {
-            return false
+        val alreadyExists = songs.any {
+            it.getVideoId() == song.getVideoId()
         }
 
+        if (alreadyExists) return false
+
         songs.add(song)
+
         return true
     }
 
-    // Menghapus lagu berdasarkan YouTube Video ID
     fun removeSong(videoId: String): Boolean {
         return songs.removeAll {
-            it.youtubeVideoId == videoId
+            it.getVideoId() == videoId
         }
     }
 
-    // Mengambil daftar lagu tanpa memberikan akses langsung ke MutableList
     fun getSongs(): List<Song> {
         return songs.toList()
     }
 
-    // Menghitung jumlah lagu dalam playlist
     fun totalSongs(): Int {
         return songs.size
     }
 
-    // Mengambil informasi playlist
-    fun getInfo(): String {
-        return "$name - ${songs.size} lagu"
+    // Digunakan saat memuat isi playlist dari MySQL
+    fun loadSongs(savedSongs: List<Song>) {
+        songs.clear()
+
+        savedSongs.forEach { song ->
+            addSong(song)
+        }
     }
 }

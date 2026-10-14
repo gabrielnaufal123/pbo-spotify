@@ -1,19 +1,27 @@
 package com.melodify.models
 
-data class Song(
-    val id: Int,
-    val albumId: Int,
+class Song(
+    override val id: String,
     override val title: String,
-    override val artist: String,
-    val youtubeVideoId: String,
-    val trackNumber: Int
-) : Media(title, artist) {
+    val artist: String,
+    private val youtubeVideoId: String,
+    val thumbnailUrl: String = ""
+) : Media(id, title), Playable {
 
     override fun getInfo(): String {
         return "$title - $artist"
     }
 
-    fun getYoutubeUrl(): String {
-        return "https://www.youtube.com/watch?v=$youtubeVideoId"
+    override fun getVideoId(): String {
+        return youtubeVideoId
+    }
+
+    fun toDTO(): YouTubeVideoDTO {
+        return YouTubeVideoDTO(
+            youtubeVideoId = getVideoId(),
+            title = title,
+            artist = artist,
+            thumbnailUrl = thumbnailUrl
+        )
     }
 }

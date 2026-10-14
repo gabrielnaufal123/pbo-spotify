@@ -1,6 +1,72 @@
+async function addSongToPlaylist(song) {
+
+    try {
+
+        const playlists = await MelodifyAPI.getPlaylists();
+
+        if (playlists.length === 0) {
+            alert(
+                "Belum ada playlist. Buat playlist terlebih dahulu."
+            );
+            return;
+        }
+
+        const options = playlists
+            .map(playlist => {
+                return `${playlist.id} - ${playlist.name}`;
+            })
+            .join("\n");
+
+        const selected = prompt(
+            "Pilih ID playlist:\n\n" + options
+        );
+
+        if (selected === null) return;
+
+        const playlistId = Number(selected);
+
+        if (!Number.isInteger(playlistId) ||
+            !playlists.some(p => p.id === playlistId)) {
+
+            alert("ID playlist tidak valid.");
+            return;
+        }
+
+        await MelodifyAPI.addToPlaylist(
+            playlistId,
+            song
+        );
+
+        alert(
+            `"${song.title}" berhasil ditambahkan ke playlist!`
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(error.message);
+    }
+}
+
 document.addEventListener("DOMContentLoaded", async function () {
 
     console.log("app.js berhasil dijalankan!");
+
+    const addButton = document.createElement("button");
+
+    addButton.textContent = "+ Playlist";
+    addButton.className = "icon-btn";
+    addButton.type = "button";
+
+    addButton.addEventListener("click", function (event) {
+
+        event.stopPropagation();
+
+        addSongToPlaylist(song);
+    });
+
+    action.replaceChildren(addButton);
 
     const tbody = document.getElementById("song-rows");
 
