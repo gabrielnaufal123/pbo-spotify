@@ -1,0 +1,23 @@
+# Gradle cache dan hasil build
+.gradle/
+build/
+
+# IntelliJ IDEA - pengaturan lokal
+.idea/
+*.iml
+*.iws
+
+# Environment dan file rahasia
+.env
+.env.*
+
+# Tetap sertakan template environment
+!.env.example
+
+# Log dan file sementara
+*.log
+*.tmp
+
+# Sistem operasi
+.DS_Store
+Thumbs.db
