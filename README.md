@@ -751,7 +751,7 @@ Fitur di atas merupakan ide pengembangan dan tidak semuanya tersedia pada implem
 
 Proyek ini dikembangkan sebagai tugas kelompok mata kuliah **Pemrograman Berorientasi Objek (PBO)**.
 
-| Nama | NIM | Username | Tanggung Jawab |
+| Nama | Username | NIM | Tanggung Jawab |
 |---|---|---|---|
 | **Muhamad Farel Attala** |[@fareu60](https://github.com/fareu60)| **225443013** | Integrasi API |
 | **Muhammad Izzudin Irsyad** |[@Syaad26](https://github.com/Syaad26)| **225443018** | OOP / Kotlin |
