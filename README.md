@@ -16,7 +16,7 @@ Proyek ini bertujuan menerapkan konsep Object-Oriented Programming (OOP) dalam p
 
 ---
 
-## 1. Spesifikasi Fungsional dan Keperluan
+## 1. Spesifikasi Fungsional dan Kebutuhan
 
 ### Latar Belakang
 
@@ -151,7 +151,7 @@ Sebelum menjalankan proyek, pastikan perangkat lunak berikut tersedia.
 Struktur utama proyek Melodify dapat disusun sebagai berikut.
 
 ```text
-pbo-spotify-push/
+melodify/
 ├── database/
 │   └── init.sql
 ├── src/
